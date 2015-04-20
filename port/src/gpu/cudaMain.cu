@@ -5,10 +5,11 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <cuda_runtime.h>
+#include "cuda_runtime.h"
+
 using namespace std;
 
-#include "microtime.h"
+//#include "microtime.h"
 
 int main(int argc, char *argv[]) {
     // TODO: Command line arguments

@@ -5,12 +5,11 @@
 extern "C" {
 #endif
 
-  double    microtime(void); /* Time in micro-seconds */
-  double    get_microtime_resolution(void); /* Timer resolution in micro-seconds */
+  double microtime(void); /* Time in micro-seconds */
+  double get_microtime_resolution(void); /* Timer resolution in micro-seconds */
 
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

@@ -1,13 +1,13 @@
-MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-CWD := $(notdir $(patsubst %/,%,$(dir $(MK_PATH))))
+# MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+# CWD := $(notdir $(patsubst %/,%,$(dir $(MK_PATH))))
 
 # Path Constants
-HEADERS := ./headers/
-SOURCES := ./src/
+# HEADERS := ./headers/
+# SOURCES := ./src/
 
-EXECUTABLE := synfire
+# EXECUTABLE := synfire
 
-CXX := g++
+# CXX := g++
 
 # CXXFLAGS := -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -fno-strict-aliasing
 # CXXINCLUDES := -I../src/port/ -I./
