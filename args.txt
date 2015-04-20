@@ -1,6 +1,8 @@
-<optional args>
+-l [LOCAL]
+-d [DEST]
+-v
 --
-<username>
-<password>
-<remote host>
-<via host>
+[username]
+[password]
+[host]
+[via]
