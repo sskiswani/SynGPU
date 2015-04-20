@@ -1,10 +1,28 @@
 # local stuff that doesnt belong in git
+*~
 .*
 _*
 args.txt
 
-# binaries
+# Binaries
 *.exe
 
-# windows stuff
+# VS Garbage
 *.lnk
+*.vcxproj
+*.vcxproj.filters
+Debug/
+*.sdf
+*.sln
+*.suo
+
+# Latex Garbage
+*.aux
+*.synctex.gz
+*.log
+*.blg
+*.bbl
+*.tdo
+
+# Idea garbage
+.idea
