@@ -1,0 +1,10 @@
+# local stuff that doesnt belong in git
+.*
+_*
+args.txt
+
+# binaries
+*.exe
+
+# windows stuff
+*.lnk
