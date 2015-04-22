@@ -199,11 +199,3 @@ void Neuron::Initialize( int label,
     Reset();
     _LEAKREV = leak;
 }
-
-/**
- * Convert from frequencies of Hz to 1/ms.
- */
-void Neuron::SetSpinFrequency( double excitory, double inhibitory ) {
-    _spfreq_ex = excitory * 0.001;
-    _spfreq_in = inhibitory * 0.001;
-}

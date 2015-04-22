@@ -47,7 +47,10 @@ class Neuron {
                                    double global_inhibition,
                                    double leak );
 
-    CUDA_CALLABLE void SetSpinFrequency( double excitory, double inhibitory );
+    CUDA_CALLABLE inline void SetSpinFrequency( double excitory, double inhibitory ) {
+        _spfreq_ex = excitory * 0.001;
+        _spfreq_in = inhibitory * 0.001;
+    }
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ INTERNAL
