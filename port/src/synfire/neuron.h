@@ -16,9 +16,11 @@ class Neuron {
 
     CUDA_CALLABLE bool Update( float dt );
 
-    CUDA_CALLABLE void ExciteInhibit( double amp, char p );
+    CUDA_CALLABLE void neur_dyn( double dt, bool no_volt );
 
     CUDA_CALLABLE void Reset();
+
+    CUDA_CALLABLE void ExciteInhibit( double amp, char p );
 
     void RecordSpike( double t );
 

@@ -56,12 +56,12 @@ bool Neuron::Update( float dt ) {
 
     //spontaneous excitation and inhibition
     if (ran1(&seed) < dt * _spfreq_ex) ExciteInhibit(_spamp_ex * ran1(&seed), 'e');
-    if (ran1(&seed) < dt * _spfreq_in) ExciteInhibit(_spfreq_in * ran1(&seed), 'i');
+    if (ran1(&seed) < dt * _spfreq_in) ExciteInhibit(_spamp_in * ran1(&seed), 'i');
 
 
     // if neuron isn't in latent period before spike
     if (_cLatent < 1 && _cRef < 1) {
-        // neur_dyn(false);
+        neur_dyn(dt, false);
 
         // go into latency before spike if potential > threshold & not refractory
         if (_volts >= Neuron::SPIKE_THRESHOLD) {
@@ -75,9 +75,7 @@ bool Neuron::Update( float dt ) {
         if (_cLatent >= 1) {
             --_cLatent; // update counter.
 
-            if (_volts == 0) {
-                _volts = Neuron::RESET;
-            }
+            if (_volts == 0) _volts = Neuron::RESET;
 
             // Spike if the latency timer ends on this step
             if (_cLatent < 1) {
@@ -87,10 +85,60 @@ bool Neuron::Update( float dt ) {
             }
         }
 
-//        neur_dyn(true);
+        neur_dyn(dt, true);
     }
 
     return spike;
+}
+
+void Neuron::neur_dyn( double dt, bool no_volt ) {
+    //update membrane potential,conductances with 4th order RK
+    double c1[3], c2[3], c3[3], c4[3];
+    c1[0] = -dt * _gexc / Neuron::DECAY_EXCITORY;
+    c1[1] = -dt * _ginh / Neuron::DECAY_INHIBITORY;
+    if (no_volt == false) {
+        c1[2] = (dt / Neuron::DECAY_MEMBRANE) *
+                ((_LEAKREV - _volts) - _gexc * _volts + _ginh * (Neuron::INHIBITORY_REVERSAL - _volts));
+    }
+    else {
+        c1[2] = 0;
+    }
+
+    c2[0] = -dt * (_gexc + c1[0] / 2.0) / Neuron::DECAY_EXCITORY;
+    c2[1] = -dt * (_ginh + c1[1] / 2.0) / Neuron::DECAY_INHIBITORY;
+    if (no_volt == false) {
+        c2[2] = (dt / Neuron::DECAY_MEMBRANE) *
+                (_LEAKREV - (_volts + (c1[2] / 2.0)) - (_gexc + c1[0] / 2.0) * (_volts + (c1[2] / 2.0)) +
+                 (_ginh + c1[1] / 2.0) * (Neuron::INHIBITORY_REVERSAL - (_volts + (c1[2] / 2.0))));
+    }
+    else {
+        c2[2] = 0;
+    }
+
+    c3[0] = -dt * (_gexc + c2[0] / 2.0) / Neuron::DECAY_EXCITORY;
+    c3[1] = -dt * (_ginh + c2[1] / 2.0) / Neuron::DECAY_INHIBITORY;
+    if (no_volt == false) {
+        c3[2] = (dt / Neuron::DECAY_MEMBRANE) *
+                (_LEAKREV - (_volts + (c2[2] / 2.0)) - (_gexc + c2[0] / 2.0) * (_volts + (c2[2] / 2.0)) +
+                 (_ginh + c2[1] / 2.0) * (Neuron::INHIBITORY_REVERSAL - (_volts + (c2[2] / 2.0))));
+    }
+    else {
+        c3[2] = 0;
+    }
+
+    c4[0] = -dt * (_gexc + c3[0]) / Neuron::DECAY_EXCITORY;
+    c4[1] = -dt * (_ginh + c3[1]) / Neuron::DECAY_INHIBITORY;
+    if (no_volt == false) {
+        c4[2] = (dt / Neuron::DECAY_MEMBRANE) * (_LEAKREV - (_volts + c3[2]) - (_gexc + c3[0]) * (_volts + (c3[2])) +
+                                                 (_ginh + c3[1]) * (Neuron::INHIBITORY_REVERSAL - (_volts + c3[2])));
+    }
+    else {
+        c4[2] = 0;
+    }
+
+    _volts += (c1[2] + 2 * c2[2] + 2 * c3[2] + c4[2]) / 6.0;
+    _gexc += (c1[0] + 2 * c2[0] + 2 * c3[0] + c4[0]) / 6.0;
+    _ginh += (c1[1] + 2 * c2[1] + 2 * c3[1] + c4[1]) / 6.0;
 }
 
 void Neuron::ExciteInhibit( double amp, char p ) {

@@ -65,6 +65,7 @@ class Synapses {
     double _syndec, _GLTP;                  //synaptic decay
 
     // TODO: Can these be improved?
+    // Convert to matrices of [SIZE][SIZE] and use -1 for unused values.
     int **_actsyn, **_supsyn;             // Arrays containing the postsynaptic cns of each neuron in the network
 };
 
