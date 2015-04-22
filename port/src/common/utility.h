@@ -2,22 +2,30 @@
 #define PORT_UTILITY_H
 
 #include <stdio.h>
+#include <stdlib.h>
 
-//static void HandleError( cudaError_t err,
-//                         const char *file,
-//                         int line ) {
-//    if (err != cudaSuccess) {
-//        printf("%s in %s at line %d\n", cudaGetErrorString(err),
-//               file, line);
-//        exit(EXIT_FAILURE);
-//    }
-//}
+#include "microtime.h"
 
-#define HANDLE_ERROR( err ) (HandleError( err, __FILE__, __LINE__ ))
 
-#define HANDLE_NULL( a ) {if (a == NULL) { \
-                            printf( "Host memory failed in %s at line %d\n", \
-                                    __FILE__, __LINE__ ); \
-                            exit( EXIT_FAILURE );}}
+struct Timer {
+    Timer() { }
+
+    void Start() {
+        _start = microtime();
+    }
+
+    double Stop() {
+        _stop = microtime();
+        return (_stop - _start);
+    }
+
+    double Duration() {
+        return (_stop - _start);
+    }
+
+private:
+    double _start, _stop;
+};
+
 
 #endif //PORT_UTILITY_H
