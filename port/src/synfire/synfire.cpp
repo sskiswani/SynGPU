@@ -13,7 +13,7 @@ Synfire::Synfire( int nsize )
           trial_steps((int) (trial_duration * INV_DT)),
           network_size(nsize),
           _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
-          _inhibition_strength(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn) {
+          _inhibition_strength(1, global_i, 1, 1, 1, 1, 2, network_size, tempNSS, window, eq_syn) {
     Initialize();
 }
 
@@ -24,7 +24,7 @@ Synfire::Synfire( int nsize, double dt, int num_trials, int trial_time )
           trial_duration(trial_time),
           trial_steps((int) (trial_time / dt)),
           _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
-          _inhibition_strength(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn) {
+          _inhibition_strength(1, global_i, 1, 1, 1, 1, 2, network_size, tempNSS, window, eq_syn) {
     network_size = nsize;
 
     Initialize();
