@@ -13,10 +13,8 @@ private:
     // Synaptic Plasticity parameters
     const static double AMPLITUDE_LTP;			// Long-term Plasticity amplitude
     const static double AMPLITUDE_LTD;			// Long-term Depression amplitude
-
     const static double INV_DECAY_LTP;			// Long-term Plasticity Inverse Decay times(ms)
     const static double INV_DECAY_LTD;			// Long-term Depression Inverse Decay times(ms)
-
     const static double POTENTIATION_FUNT;		// Potentiation
     const static double DEPRESSION_FUNT;		// Depression
 };

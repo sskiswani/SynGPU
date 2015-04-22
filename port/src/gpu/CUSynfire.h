@@ -1,33 +1,19 @@
-#ifndef PORT_SYNFIRE_H
-#define PORT_SYNFIRE_H
+#ifndef PORT_CUSYNFIRE_H
+#define PORT_CUSYNFIRE_H
 
 #include <fstream>
 
-//~ Forward declarations of dependencies
 class Neuron;
 
-class Synfire {
-  public:
-
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    //~ Constructors.
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-
-    Synfire( int nsize ) : DT(0.1),
-                           INV_DT(1 / DT),
-                           trials(200000),
-                           trial_duration(2000),
-                           trial_steps((int) (trial_duration * INV_DT)),
-                           network_size(nsize) {
+class CUSynfire {
+    CUSynfire( int nsize ) : DT(0.1),
+                             INV_DT(1 / DT),
+                             trials(200000),
+                             trial_duration(2000),
+                             trial_steps((int) (trial_duration * INV_DT)),
+                             network_size(nsize) {
         Initialize();
     }
-
-    Synfire( int nsize, double dt, int num_trials, int trial_time );
-
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    //~ Synfire Methods
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    void Run();
 
     void RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa );
 
@@ -83,14 +69,13 @@ class Synfire {
     int sc = 0; //total spike counter
     double av = 0;
 
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    // TODO: Pending attributes from synfireGrowth.main()
-
   private:
     void Initialize();
 
+    const int network_size;
     Neuron *_network;
-    int network_size;
+    Neuron *_dnetwork;
 };
 
-#endif //PORT_SYNFIRE_H
+
+#endif //PORT_CUSYNFIRE_H

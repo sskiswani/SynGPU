@@ -14,36 +14,38 @@ class Neuron {
     Neuron( int label, double exc_freq, double inh_freq, double exc_amp, double inh_amp, double global_inhibition );
 
 
-    bool Update( float dt );
+    CUDA_CALLABLE bool Update( float dt );
 
-    void ExciteInhibit( char p, double amp );
+    CUDA_CALLABLE void ExciteInhibit( char p, double amp );
 
-    void Reset();
+    CUDA_CALLABLE void Reset();
 
     void RecordSpike( double t );
 
     void ResetSpike();
 
-    double Get(char code) {
-        if(code == 'e') return _gexc;
+    CUDA_CALLABLE double Get( char code ) {
+        if (code == 'e') return _gexc;
         else if (code == 'i') return _ginh;
         else if (code == 'v') return _volts;
     }
 
-    double Volts() { return _volts; }
-    double Excitatory() { return _gexc; }
-    double Inhibitory() { return _ginh; }
+    CUDA_CALLABLE double Volts() { return _volts; }
+
+    CUDA_CALLABLE double Excitatory() { return _gexc; }
+
+    CUDA_CALLABLE double Inhibitory() { return _ginh; }
 
   private:
-    void Initialize( int label,
-                     double exc_freq,
-                     double inh_freq,
-                     double exc_amp,
-                     double inh_amp,
-                     double global_inhibition,
-                     double leak );
+    CUDA_CALLABLE void Initialize( int label,
+                                   double exc_freq,
+                                   double inh_freq,
+                                   double exc_amp,
+                                   double inh_amp,
+                                   double global_inhibition,
+                                   double leak );
 
-    void SetSpinFrequency( double excitory, double inhibitory );
+    CUDA_CALLABLE void SetSpinFrequency( double excitory, double inhibitory );
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ INTERNAL

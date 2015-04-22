@@ -1,15 +1,13 @@
-#include <stdlib.h>
-#include <math.h>
-#include <time.h>
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-
-#include "microtime.h"
+//#include <stdlib.h>
+//#include <math.h>
+//#include <time.h>
+//#include <string>
+//#include <iostream>
+//#include <fstream>
+//#include <sstream>
+//#include "microtime.h"
 
 #include "cuda_utils.h"
-//#include <cuda_runtime.h>
 
 
 int main(int argc, char *argv[]) {
