@@ -102,7 +102,7 @@ void Synfire::Run() {
         tSD[0] = microtime();
         if (plasticity) {
             // L1408: Synapses decay after each trial.
-//            connectivity->synaptic_decay();
+            _connectivity.SynapticDecay();
         }
 
         tSD[1] = microtime();
@@ -179,13 +179,32 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
 
         tSL[0] = microtime();
         for (int j = 0; j < v_whospike.size(); ++j) { // Spike Loop
-//            int *send_to;//pointer to array containing post neurons
-//            int send_count;//number of post neurons receiving spike
+            int spiker = whospike[j];
+            int *send_to;//pointer to array containing post neurons
+            int send_count;//number of post neurons receiving spike
 //            cout<<v_whospike[j]<<" spikes!!! at "<<t<<endl;
 //            _network[v_whospike[j]].recspike(t); //record time of spike
             sc++; //keep track of total number of spikes this trial
 
             // TODO: L1348: Emit spikes
+            //check to see if spiking neuron is saturated
+            if(_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
+                int j_nss = _connectivity.GetNSS(spiker);
+                for(int k = 0; k < j_nss; ++k) {
+                    // Send spikes along super synapses
+                    _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+                }
+            } else {
+                //spiking neuron isn't saturated, send spikes along active connections
+                send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
+                for(int k = 0; k < send_count; k++) {
+                    _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+                }
+            }
+
+            if(plasticity) {
+                _connectivity.Synaptic_Plasticity(spiker, t, &_network);
+            }
         }
 
         tSL[1] = microtime();
@@ -195,8 +214,9 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
         // L1372: Inhibition.
         inh[dsteps - 1] = whocount;
         for (int z = 0; z < whocount; ++z) {
+            int spiker = whospike[z];
             for (int j = 0; j < network_size; ++j) {
-                // network[j]->excite_inhibit(inhibition_strength->getsynstr(v_whospike[z],j),'i');
+                _network[j].ExciteInhibit(_inhibition_strength.GetSynapticStrength(spiker, j), 'i');
             }
 //            cout<<t<<" "<<inh[0]*global_i<<endl;
         }

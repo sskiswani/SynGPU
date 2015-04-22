@@ -16,7 +16,7 @@ class Neuron {
 
     CUDA_CALLABLE bool Update( float dt );
 
-    CUDA_CALLABLE void ExciteInhibit( char p, double amp );
+    CUDA_CALLABLE void ExciteInhibit( double amp, char p );
 
     CUDA_CALLABLE void Reset();
 

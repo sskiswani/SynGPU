@@ -55,8 +55,8 @@ bool Neuron::Update( float dt ) {
     bool spike = false;
 
     //spontaneous excitation and inhibition
-    if (ran1(&seed) < dt * _spfreq_ex) ExciteInhibit('e', _spamp_ex * ran1(&seed));
-    if (ran1(&seed) < dt * _spfreq_in) ExciteInhibit('i', _spfreq_in * ran1(&seed));
+    if (ran1(&seed) < dt * _spfreq_ex) ExciteInhibit(_spamp_ex * ran1(&seed), 'e');
+    if (ran1(&seed) < dt * _spfreq_in) ExciteInhibit(_spfreq_in * ran1(&seed), 'i');
 
 
     // if neuron isn't in latent period before spike
@@ -93,7 +93,7 @@ bool Neuron::Update( float dt ) {
     return spike;
 }
 
-void Neuron::ExciteInhibit( char p, double amp ) {
+void Neuron::ExciteInhibit( double amp, char p ) {
     if (p == 'e') _gexc += amp;
     else if (p == 'i') _ginh += amp;
 }
@@ -121,9 +121,9 @@ void Neuron::RecordSpike( double t ) {
 
 void Neuron::ResetSpike() {
     // TODO: How to store spike history?
-    if(_cSpike != 0) {
+    if (_cSpike != 0) {
         _cSpike = 0;
-        delete [] _spkhist;
+        delete[] _spkhist;
     }
 }
 
