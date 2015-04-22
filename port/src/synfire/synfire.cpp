@@ -1,18 +1,34 @@
 #include <vector>
 #include <iostream>
 #include "random.h"
+#include "microtime.h"
 #include "synfire.h"
 #include "neuron.h"
-#include "microtime.h"
+
+Synfire::Synfire( int nsize )
+        : DT(0.1),
+          INV_DT(1 / DT),
+          trials(200000),
+          trial_duration(2000),
+          trial_steps((int) (trial_duration * INV_DT)),
+          network_size(nsize),
+          _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
+          _inhibition_strength(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn) {
+    Initialize();
+}
 
 Synfire::Synfire( int nsize, double dt, int num_trials, int trial_time )
         : DT(dt),
           INV_DT(1 / dt),
           trials(num_trials),
           trial_duration(trial_time),
-          trial_steps((int) (trial_time / dt)) {
+          trial_steps((int) (trial_time / dt)),
+          _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
+          _inhibition_strength(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn) {
     network_size = nsize;
+
     Initialize();
+
 }
 
 void Synfire::Initialize() {
@@ -48,11 +64,17 @@ void Synfire::Initialize() {
     for (int i = 0; i < dsteps; ++i) inh[i] = 0;
 
     //==========================================
+    //~ Initialize Synapses.
+    _connectivity = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
+    _inhibition_strength = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
+
+    //==========================================
     //~ Initialize Neurons.
     _network = new Neuron[network_size];
     for (int i = 0; i < network_size; ++i) {
         _network[i] = Neuron(i, exfreq, infreq, examp, inamp, global_i);
     }
+
 }
 
 void Synfire::Run() {

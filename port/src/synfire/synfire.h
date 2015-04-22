@@ -2,6 +2,7 @@
 #define PORT_SYNFIRE_H
 
 #include <fstream>
+#include "synapses.h"
 
 //~ Forward declarations of dependencies
 class Neuron;
@@ -13,14 +14,7 @@ class Synfire {
     //~ Constructors.
     //"""""""""""""""""""""""""""""""""""""""""""""""""
 
-    Synfire( int nsize ) : DT(0.1),
-                           INV_DT(1 / DT),
-                           trials(200000),
-                           trial_duration(2000),
-                           trial_steps((int) (trial_duration * INV_DT)),
-                           network_size(nsize) {
-        Initialize();
-    }
+    Synfire( int nsize );
 
     Synfire( int nsize, double dt, int num_trials, int trial_time );
 
@@ -88,7 +82,8 @@ class Synfire {
 
   private:
     void Initialize();
-
+    Synapses _connectivity;
+    Synapses _inhibition_strength;
     Neuron *_network;
     int network_size;
 };
