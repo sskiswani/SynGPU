@@ -39,8 +39,8 @@ Synapses::Synapses( double fract_act,
     _actcount = new int[_size];
     _supcount = new int[_size];
 
-    _actsyn = new int *[_size];
-    _supsyn = new int *[_size];
+    _actsyn = new bool [_size * _size];
+    _supsyn = new bool [_size * _size];
 
     _NSS = new int[_size];
     for (int i = 0; i < _size; ++i) {
@@ -92,59 +92,29 @@ Synapses::Synapses( double fract_act,
  */
 void Synapses::Activate( char p, int pre, int post ) {
     // 'a' for active, 's' for super
-    int *l, *m;
     if (p == 'a') {
-        l = &_actcount[pre]; // l points to # of active synapses of pre.
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _actsyn[pre];
+		++(_actcount[pre]);	
+		_actsyn[pre*_size + post] = true;
     } else if (p == 's') {
-        l = &_supcount[pre];
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _supsyn[pre];
+        ++(_supcount[pre]);
+        _supsyn[pre*_size + post] = true;
     } else {
         // Invalid argument
         return;
     }
-
-    m[(*l)] = post; // Place new synapses here.
-    ++(*l);         // Increment counter.
 }
 
 void Synapses::Deactivate( char p, int pre, int post ) {
     // 'a' for active, 's' for super
-    int *temp, *l, *m;
     if (p == 'a') {
-        l = &_actcount[pre]; // l points to # of active synapses of pre.
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _actsyn[pre];
+		--(_actcount[pre]);
+		_actsyn[pre * _size + post] =  false;	
     } else if (p == 's') {
-        l = &_supcount[pre];
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _supsyn[pre];
+		--(_supcount[pre]);
+		_supsyn[pre * _size + post] = false;
     } else {
         // Invalid argument
         return;
-    }
-
-    if ((*l) != 1) { // If the last post is not being deactivated...
-        // TODO: Need to handle the shrinking/increasing values.
-        // Don't include post when placing values in temp back into supsyn[pre], so move the last value into its place
-        for (int i = 0; i < (*l); ++i) {
-            if (temp[i] == post) {
-                temp[i] = temp[(*l) - 1];
-                break;
-            }
-        }
-
-        --(*l);
-
-        for (int i = 0; i < (*l); ++i) {
-            m[i] = temp[i];
-        }
-
-        delete[] temp;
-    } else { // Last post is being deactivated.
-        --(*l);
     }
 }
 
@@ -232,7 +202,7 @@ void Synapses::CheckThreshold( double syn_str, int pre, int post, char syn_type,
             Activate(syn_type, pre, post);
         }
     } else if (pd_type == 'd') {
-        if (_G[pre * _size * post] >= thres && syn_str < thres) {
+        if (_G[pre * _size + post] >= thres && syn_str < thres) {
             Deactivate(syn_type, pre, post);
         }
     } else {
@@ -251,12 +221,12 @@ void Synapses::SynapticDecay() {
     }
 }
 
-double Synapses::GetPostSynapticLabel( char syn_type, int pre, int *&post ) {
+double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post ) {
     if(syn_type == 'a') {
-        post = _actsyn[pre];
+        post = _actsyn;
         return _actcount[pre];
     } else { //  if(syn_type == 's')
-        post = _supsyn[pre];
+        post = _supsyn;
         return _supcount[pre];
     }
 }

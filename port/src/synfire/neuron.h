@@ -9,6 +9,9 @@
 
 class Neuron {
   public:
+	friend class CUSynfire;
+	friend class Synfire;
+
     Neuron();
 
     Neuron( int label, double exc_freq, double inh_freq, double exc_amp, double inh_amp, double global_inhibition );

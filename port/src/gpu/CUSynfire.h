@@ -4,6 +4,7 @@
 #include <fstream>
 
 class Neuron;
+class Synapses;
 
 class CUSynfire {
     CUSynfire( int nsize ) : DT(0.1),
@@ -14,8 +15,13 @@ class CUSynfire {
                              network_size(nsize) {
         Initialize();
     }
-
+	void Initialize();	
+	void Run();
     void RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa );
+
+	void SynapticDecayWrapper(Synapses *connectivity);
+	void SynapticDecayKernel(int syn_size);
+
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Member constants.
@@ -75,6 +81,8 @@ class CUSynfire {
     const int network_size;
     Neuron *_network;
     Neuron *_dnetwork;
+	Synapses _connectivity, _inhibition_strength;
+	Synapses *_dconnectivity;
 };
 
 

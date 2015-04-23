@@ -180,7 +180,8 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
         tSL[0] = microtime();
         for (int j = 0; j < v_whospike.size(); ++j) { // Spike Loop
             int spiker = whospike[j];
-            int *send_to;//pointer to array containing post neurons
+			int spikeIdx;	// corresponding neuron index in synapse class 
+            bool *send_to;//pointer to array containing post neurons
             int send_count;//number of post neurons receiving spike
 //            cout<<v_whospike[j]<<" spikes!!! at "<<t<<endl;
 //            _network[v_whospike[j]].recspike(t); //record time of spike
@@ -189,17 +190,20 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
             // TODO: L1348: Emit spikes
             //check to see if spiking neuron is saturated
             if(_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
-                int j_nss = _connectivity.GetNSS(spiker);
-                for(int k = 0; k < j_nss; ++k) {
-                    // Send spikes along super synapses
-                    _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
-                }
+				spikeIdx = spiker*network_size;
+				for (int k = spikeIdx, k2 = 0; k < spikeIdx + network_size; ++k, ++k2) {
+					// Send Spikes along super synapses
+					if (send_to[k]) { 
+						_network[k2].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, k2), 'e');
+					}
+				}
             } else {
                 //spiking neuron isn't saturated, send spikes along active connections
                 send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
-                for(int k = 0; k < send_count; k++) {
-                    _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
-                }
+				spikeIdx = spiker*network_size;
+				for (int k = spikeIdx, k2 = 0; k < spikeIdx + network_size; ++k, k2) {
+					_network[k2].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, k2), 'e');
+				}
             }
 
             if(plasticity) {
@@ -213,6 +217,14 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
 
         // L1372: Inhibition.
         inh[dsteps - 1] = whocount;
+		for (int z = 0; z < whocount; ++z) {
+			int spiker = whospike[z];
+			int spikeIdx = spiker * network_size;
+			for (int j = spikeIdx, j2 = 0; j < spikeIdx + network_size; ++j, ++j2) {
+				_network[j2].ExciteInhibit(_inhibition_strength.GetSynapticStrength(spiker, j2), 'i');
+			}
+		}
+			
         for (int z = 0; z < whocount; ++z) {
             int spiker = whospike[z];
             for (int j = 0; j < network_size; ++j) {

@@ -11,6 +11,9 @@ class Neuron;
 
 class Synapses {
   public:
+	friend class CUSynfire;
+	friend class Synfire;
+	
     Synapses( double fract_act,
               double glob,
               double act_thres,
@@ -35,7 +38,7 @@ class Synapses {
 
     void SynapticDecay();
 
-    double GetPostSynapticLabel( char syn_type, int pre, int *&post );
+    double GetPostSynapticLabel( char syn_type, int pre, bool *&post );
 
     // Accessors
     inline double GetNSS( int label ) { return _NSS[label]; }
@@ -64,9 +67,7 @@ class Synapses {
     double _actthres, _supthres, _synmax;   // Active, super thresholds, synapse cap
     double _syndec, _GLTP;                  //synaptic decay
 
-    // TODO: Can these be improved?
-    // Convert to matrices of [SIZE][SIZE] and use -1 for unused values.
-    int **_actsyn, **_supsyn;             // Arrays containing the postsynaptic cns of each neuron in the network
+    bool *_actsyn, *_supsyn;             // Arrays containing the postsynaptic cns of each neuron in the network
 };
 
 #endif //PORT_SYNAPSE_H
