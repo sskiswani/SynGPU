@@ -1,45 +1,56 @@
-# MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
-# CWD := $(notdir $(patsubst %/,%,$(dir $(MK_PATH))))
+MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+ CWD := $(notdir $(patsubst %/,%,$(dir $(MK_PATH))))
 
 # Path Constants
-# HEADERS := ./headers/
-# SOURCES := ./src/
+SOURCES := ./src/
 
-# EXECUTABLE := synfire
+EXECUTABLE := synfireGrowth
 
-# CXX := g++
-
+CXX := g++44
+CXXFLAGS := -std=c++0x
 # CXXFLAGS := -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -fno-strict-aliasing
-# CXXINCLUDES := -I../src/port/ -I./
+CXXINCLUDES := -I./src/port/ -I./src/common/ -I./src/gpu/ -I./src/synfire/
 
-# NVCCFLAGS := -O3 -arch sm_30
-# NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
-# NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
+NVCC := /usr/local/cuda/bin/nvcc
+NVCCFLAGS := -O3 -arch sm_30
+NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
+NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
 
-# SRC_PATH := ../src/port/
+SRC_PATH := src/
+GPU_PATH := src/gpu/
+SYN_PATH := src/synfire/
+CMN_PATH := src/common/
 
-# default: $(EXECUTABLE)
+default: $(EXECUTABLE)
 
-# synfire: synfireGrowth.o synapses.o neuron.o microtime.o synfireGrowthCuda.o
-# 	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) $(NVCCLIBS) $(NVCCINCLUDES) $^ -o $@
+# GPU MAKE TARGETS
+syn_gpu: $(GPU_PATH)cudaMain.cu microtime.o CUSynfire.o neuron.o synapses.o microtime.o random.o
+	$(NVCC) $(NVCCINCLUDES) $(CXXINCLUDES) $(NVCCFLAGS) $^ -o $@
 
-# synfireGrowthCuda.o: synfireGrowthCuda.cu microtime.h $(SRC_PATH)synapses.h
-# 	/usr/local/cuda/bin/nvcc $(NVCCFLAGS) $(NVCCINCLUDES) -c synfireGrowthCuda.cu
+CUSynfire.o: $(CMN_PATH)microtime.h $(GPU_PATH)CUSynfire.h $(GPU_PATH)CUSynfire.cpp
+	$(NVCC) $(CXXINCLUDES) $(CXXINCLUDES) -c $(GPU_PATH)CUSynfire.cpp
 
-# synfireGrowth.o: $(SRC_PATH)neuron.h synfireGrowth.cpp
-# 	 $(CXX) $(CXXINCLUDES) $(CXXFLAGS) -c synfireGrowth.cpp
+# CPU MAKE TARGETS
+synfireGrowth: $(SRC_PATH)main.cpp synfire.o microtime.o synfire.o neuron.o synapses.o microtime.o random.o
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) $^ -o $@
 
-# microtime.o: microtime.h microtime.cpp
-# 	$(CXX) $(CXXINCLUDES) $(CXXFLAGS) -c microtime.cpp
+synfire.o: $(CMN_PATH)microtime.h $(SYN_PATH)synfire.h $(SYN_PATH)synfire.cpp
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(SYN_PATH)synfire.cpp
 
-# synapses.o: $(SRC_PATH)synapses.h $(SRC_PATH)synapses.cpp $(SRC_PATH)neuron.h
-# 	$(CXX) $(CXXINCLUDES) $(CXXFLAGS) -c  $(SRC_PATH)synapses.cpp
+microtime.o: $(CMN_PATH)microtime.h $(CMN_PATH)microtime.cpp
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(CMN_PATH)microtime.cpp
 
-# neuron.o: $(SRC_PATH)neuron.h $(SRC_PATH)neuron.cpp
-# 	$(CXX) $(CXXINCLUDES) $(CXXFLAGS) -c $(SRC_PATH)neuron.cpp
+synapses.o: $(SYN_PATH)synapses.h $(SYN_PATH)synapses.cpp
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c  $(SYN_PATH)synapses.cpp
 
-# clean:
-# 	rm -rf *.o *~
+neuron.o: $(SYN_PATH)neuron.h $(SYN_PATH)neuron.cpp
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(SYN_PATH)neuron.cpp
 
-# realclean:
-# 	rm -rf *.o *~ $(EXECUTABLE)
+random.o: $(CMN_PATH)random.h $(CMN_PATH)random.cpp
+	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(CMN_PATH)random.cpp
+
+clean:
+	rm -rf *.o *~
+
+realclean:
+	rm -rf *.o *~ $(EXECUTABLE)
