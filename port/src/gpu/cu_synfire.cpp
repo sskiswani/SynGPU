@@ -1,35 +1,38 @@
-#include <vector>
 #include <iostream>
+#include <vector>
+#include "cu_synfire.h"
+#include "cuda_utils.h"
+//#include <cuda_runtime.h>
 #include "random.h"
 #include "microtime.h"
-#include "synfire_helpers.h"
-#include "synfire.h"
 #include "neuron.h"
+
 
 //"""""""""""""""""""""""""""""""""""""""""""""""""
 // TODO: Pending attributes from the top of synfireGrowth.cpp.
 int *group_rank; //contains group ranking of each neuron after chain network forms
 
-Synfire Synfire::CreateSynfire() {
-    return Synfire(SynfireParameters());
+CUSynfire CUSynfire::CreateCUSynfire() {
+    return CUSynfire(SynfireParameters());
 }
 
-Synfire Synfire::CreateSynfire( int nsize ) {
+
+CUSynfire CreateCUSynfire( int nsize ) {
     struct SynfireParameters parms;
     parms.network_size = nsize;
-    return Synfire(parms);
+    return CUSynfire(parms);
 }
 
-Synfire Synfire::CreateSynfire( int nsize, double dt, int num_trials, int trial_time ) {
+CUSynfire CreateCUSynfire( int nsize, double dt, int num_trials, int trial_time ) {
     struct SynfireParameters parms;
     parms.network_size = nsize;
     parms.timestep = dt;
     parms.trials = num_trials;
     parms.trial_duration = trial_time;
-    return Synfire(parms);
+    return CUSynfire(parms);
 }
 
-Synfire::Synfire( SynfireParameters params )
+CUSynfire::CUSynfire( SynfireParameters params )
         : DT(params.timestep),
           INV_DT(1 / DT),
           trials(params.timestep),
@@ -54,11 +57,10 @@ Synfire::Synfire( SynfireParameters params )
                                params.tempNSS,
                                params.window,
                                params.eq_syn) {
-    _params = params;
     Initialize();
 }
 
-void Synfire::Initialize() {
+void CUSynfire::Initialize() {
     //~ Ensure parameter sanity.
     _elapsedTime = 0.0;
     _spikeCounter = 0;
@@ -111,9 +113,15 @@ void Synfire::Initialize() {
 
     _whospiked.reserve((unsigned long) (network_size / 2));
     _spikeHistory.resize((unsigned long) (network_size), row_t());
+
+    //~ Allocate and initialize device copy of the network.
+    HANDLE_ERROR(cudaMalloc((void **) &_dnetwork, sizeof(Neuron) * network_size));
+    HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
+
 }
 
-void Synfire::Run() {
+void CUSynfire::Run() {
+
     double start, stop;
 
     // From L1230:
@@ -192,16 +200,7 @@ void Synfire::Run() {
     " Avg Decay: " << US_TO_MS(avgSD / 10) << std::endl;
 }
 
-/**
- * Runs a single SynfireGrowth trial.
- *
- * @param tT   The timing for the current trial.
- * @param tTS  The timing for an individual trial step.
- * @param tMPL The timing for Membrane Potential Layer, e.g. [start, end, delta]. (?)
- * @param tSL  The timing for the Spike loop, e.g. [start, end, delta]. (?)
- * @param tTSa The timing across all trial steps.
- */
-double Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkLp, double *tTSa ) {
+double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkLp, double *tTSa ) {
     // ref: L1235.
     tT[0] = microtime();
     tTS[0] = microtime();
@@ -286,7 +285,8 @@ double Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkLp,
     return _elapsedTime;
 }
 
-void Synfire::DoSpikeLoop() {
+
+void CUSynfire::DoSpikeLoop() {
     int spiker;
     row_t spk_hist; // Neuron's spike history data.
     bool *send_to;  // pointer to array containing post neurons.
@@ -325,7 +325,7 @@ void Synfire::DoSpikeLoop() {
     }
 }
 
-double Synfire::GetAverageVoltage() {
+double CUSynfire::GetAverageVoltage() {
     double avg = 0.0;
 
     for (int i = 0; i < network_size; ++i) {

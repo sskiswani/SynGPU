@@ -8,17 +8,10 @@ int main( int argc, char *argv[] ) {
 
     // TODO: Command line arguments
 
-    // TODO: Allocate Synpses & Neurons
     timer.Start();
     Synfire syn = Synfire::CreateSynfire();
     timer.Stop();
-    std::cout << "Initialization time: " << timer.Duration() << " ms." << std::endl;
-
-    // TODO: Seed generators
-
-    // TODO: Initialize Synapse Object
-
-    // TODO: Prepare trials
+    std::cout << "Initialization time: " << US_TO_MS(timer.Duration()) << " ms." << std::endl;
 
     syn.Run();
 }

@@ -5,8 +5,10 @@
 //#include <iostream>
 //#include <fstream>
 //#include <sstream>
-//#include "microtime.h"
 
+#include <iostream>
+#include "utility.h"
+#include "cu_synfire.h"
 #include "cuda_utils.h"
 
 
@@ -16,12 +18,14 @@ int main(int argc, char *argv[]) {
     int whichDevice;
     HANDLE_ERROR( cudaGetDevice( &whichDevice) );
     HANDLE_ERROR( cudaGetDeviceProperties( &prop, whichDevice) );
+    struct Timer timer;
 
     // TODO: Command line arguments
 
-    // TODO: Allocate Synapses & Neurons
+    timer.Start();
+    CUSynfire synfire = CUSynfire::CreateCUSynfire();
+    timer.Stop();
+    std::cout << "Initialization time: " << US_TO_MS(timer.Duration()) << " ms." << std::endl;
 
-    // TODO: Seed generators
-
-    // TODO: Initialize Synapse Object
+    synfire.Run();
 }

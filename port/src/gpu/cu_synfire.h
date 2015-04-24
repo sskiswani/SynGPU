@@ -1,5 +1,11 @@
-#ifndef PORT_SYNFIRE_H
-#define PORT_SYNFIRE_H
+#ifndef PORT_CUSYNFIRE_H
+#define PORT_CUSYNFIRE_H
+
+#ifdef __CUDACC__
+#define CUDA_CALLABLE __host__ __device__
+#else
+#define CUDA_CALLABLE
+#endif
 
 #include <vector>
 #include <fstream>
@@ -8,22 +14,19 @@
 
 typedef std::vector<double> row_t;
 typedef std::vector<row_t> matrix_t;
+
 class Neuron;
 
-class Synfire {
+class CUSynfire {
   public:
-    static Synfire CreateSynfire();
+    static CUSynfire CreateCUSynfire();
 
-    static Synfire CreateSynfire( int nsize );
+    static CUSynfire CreateCUSynfire( int nsize );
 
-    static Synfire CreateSynfire( int nsize, double dt, int num_trials, int trial_time );
+    static CUSynfire CreateCUSynfire( int nsize, double dt, int num_trials, int trial_time );
 
     //~ CTOR
-    Synfire( SynfireParameters );
-
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    //~ Synfire Methods
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
+    CUSynfire( SynfireParameters );
 
     void Run();
 
@@ -68,15 +71,15 @@ class Synfire {
 
     //~ Neuron Data
     int network_size;
-    Neuron *_network;
+    Neuron *_network, *_dnetwork;
 
     //~ Neuron helpers
     std::vector<int> _whospiked;  // labels of Neurons who spiked during a timestep.
     matrix_t _spikeHistory;
 
     //~ Synapse Data
-    Synapses _connectivity;
-    Synapses _inhibition_strength;
+    Synapses _connectivity, *_dconnectivity;
+    Synapses _inhibition_strength, *_dinh_str;
 
     //~ Timestep info
     double _elapsedTime;  // total time elapsed in a trial.
@@ -92,4 +95,5 @@ class Synfire {
     double _train_dur;  // training duration in ms
 };
 
-#endif //PORT_SYNFIRE_H
+
+#endif //PORT_CUSYNFIRE_H
