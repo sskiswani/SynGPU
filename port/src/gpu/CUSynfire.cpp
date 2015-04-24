@@ -110,32 +110,16 @@ void CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, do
 
     // ref: L1235.
     tT[0] = microtime();
-    int train_time_counter = 0;
-    int train_group_lab = 0;
+    train_time_counter = 0;
+    train_group_lab = 0;
 
     tTS[0] = microtime();
 
     // L1268: for (int i=0; i<trial_steps; i++) {//****Timestep Loop****//
     for (int i = 0; i < trial_steps; i++) {
         // L1271: Training loop
-        if (t >= train_times[train_time_counter]) {
-            int tstart = ntrain * train_group_lab;
-            int tstop = ntrain * (train_group_lab + 1);
-
-            for (int j = tstart; j < tstop; ++j) {
-                if (ran1(&seed) < training_f * DT) {
-                    _network[train_lab[j]].ExciteInhibit(training_amp, 'e');
-                    //cout<<"excited "<<train_lab[j]<<" at "<<t<<endl;
-                }
-            }
-
-            // L1279: IDK yet.
-            if (t >= (train_times[train_time_counter] + training_t)) {
-                //cout<<train_group_lab<<" "<<t<<endl;
-                train_time_counter++;
-                train_group_lab = 1; // rand() % ntrg
-            }
-        }
+        //TimeStepWrapper(); Put all of this into that func
+        TrainingLoopWrapper();
 
         // L1286: Omitted Track voltages and conductances
         tMPL[0] = microtime();
@@ -195,6 +179,41 @@ void CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, do
         tTS[1] = microtime();
         tTSa[i] = (tTS[1] - tTS[0]);
     } // end timestep loop.
+}
+
+__global__
+void CUSynfire::TrainingLoopKernel()
+{
+            int i = blockDim.x*blockIdx.x + threadIdx.x;
+            //train_time_counter not in loop
+            if (t >= train_times[train_time_counter]) {
+            int tstart = ntrain * train_group_lab;
+            int tstop = ntrain * (train_group_lab + 1);
+
+            for (int j = tstart; j < tstop; ++j) {
+                if (ran1(&seed) < training_f * DT) {
+                    _network[train_lab[i]].ExciteInhibit(training_amp, 'e');
+                    //cout<<"excited "<<train_lab[j]<<" at "<<t<<endl;
+                }
+            }
+
+            // L1279: IDK yet.
+            if (t >= (train_times[train_time_counter] + training_t)) {
+                //cout<<train_group_lab<<" "<<t<<endl;
+                train_time_counter++;
+                train_group_lab = 1; // rand() % ntrg
+            }
+        }
+
+}
+
+void CUSynfire::TrainingLoopWrapper()
+{
+    int numThreads=256;
+    int numBlocks=network_size/numThreads;
+
+    TrainingLoopKernel<<<numBlocks, numThreads>>>();
+
 }
 
 __global__

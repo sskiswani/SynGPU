@@ -21,6 +21,8 @@ class CUSynfire {
 
 	void SynapticDecayWrapper(Synapses *connectivity);
 	void SynapticDecayKernel(int syn_size);
+    void TrainingLoopKernel();
+    void TrainingLoopWrapper();
 
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""
@@ -68,7 +70,8 @@ class CUSynfire {
     double training_f = 1.5; //training spike frequency (ms)^(-1)
     double training_amp = .7; //training spike strength
     double training_t = 8.0; //training duration in ms
-
+    int train_group_lab; 
+    int train_time_counter;
 
     // Stats
     bool stats_on = true;
