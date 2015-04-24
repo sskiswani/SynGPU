@@ -160,21 +160,6 @@ void Neuron::Reset() {
     _ginh = 2 * ginh_avg * ran1(&seed);
 }
 
-
-void Neuron::RecordSpike( double t ) {
-    // Record this spike in _spkhist.
-//    _spkhist[_cSpike] = t;
-    ++_cSpike;
-}
-
-void Neuron::ResetSpike() {
-    // TODO: How to store spike history?
-    if (_cSpike != 0) {
-        _cSpike = 0;
-        delete[] _spkhist;
-    }
-}
-
 /**
  * Initialize Neuron data.
  */
@@ -194,7 +179,6 @@ void Neuron::Initialize( int label,
     _label = label;
     _cLatent = 0;
     _cRef = 0;
-    _cSpike = 0;
 
     Reset();
     _LEAKREV = leak;

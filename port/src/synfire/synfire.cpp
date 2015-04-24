@@ -109,7 +109,6 @@ void Synfire::Initialize() {
     //==========================================
     //~ Statistics & Logging.
     stats_on = true;
-    stats_av = 0;
 
     //==========================================
     //~ Initialize dependencies.
@@ -163,6 +162,7 @@ void Synfire::Run() {
     tMPL[2] = 0, tSL[2] = 0, tTS[2] = 0, tSynDecay[2] = 0;
 
     // L1234: for (int a=0; a<=10/*trials*/; a++){//****Trial Loop****//
+    // TODO: Loop for the appropriate number of trials.
     for (int a = 0; a <= 10; a++) {
         start = microtime();
 
@@ -187,28 +187,49 @@ void Synfire::Run() {
         stop = microtime();
 
         if (stats_on) {
-            stats_av = 0.0;
-            for (int i = 0; i < network_size; ++i) stats_av += _network[i].Volts();
-            stats_av /= network_size;
+            double avg_volts = 0.0;
+            for (int i = 0; i < network_size; ++i) avg_volts += _network[i].Volts();
+            avg_volts /= network_size;
 
-            // FORMAT: <trial> <spike total> <av. volt> <runtime> <# of active connections>
             std::cout << "Trial " << a << std::endl;
-            std::cout << "\tDuration: " << (stop - start) << " ms." << std::endl;
+            std::cout << "\tDuration: " << US_TO_MS(stop - start) << " ms." << std::endl;
+            std::cout << "\tSpikes: " << _spikeCounter << std::endl;
+            std::cout << "\tAvg. Volts: " << avg_volts << std::endl;
+            std::cout << "\tActive Connections: " << _connectivity.CountSynapses('a') << std::endl;
         }
 
         // Reset neuron values for next trial
-        for (int i = 0; i < network_size; ++i) {
-            _network[i].Reset();
-            _network[i].ResetSpike();
+        _spikeCounter = 0;
+        for (matrix_t::iterator itr = _spikeHistory.begin(); itr != _spikeHistory.end(); ++itr) {
+            (*itr).clear();
         }
 
-        _spikeCounter = 0;
+        for (int i = 0; i < network_size; ++i) {
+            _network[i].Reset();
+        }
 
         // Update timing data.
         tT[1] = microtime();
         tT[2] = (tT[1] - tT[0]);
         tTa[a] = tT[2];
+    } // end of simulation.
+
+    if (stats_on == false) return;
+
+    std::cout << "\n\nSIMULATION SUMMARY:" << std::endl;
+    double avgTime = 0.0, avgTS = 0.0, avgSD = 0;
+    for (int i = 0; i < 10; ++i) {
+        std::cout << "Trial: " << i << " Time: " << US_TO_MS(tTa[i]) << " ms TrialStep: " << US_TO_MS(tTSa[i]) <<
+        " SynapticDecay: " << US_TO_MS(tSDa[i]) << std::endl;
+
+        avgTime += tTa[i];
+        avgTS += tTSa[i];
+        avgSD += tSDa[i];
     }
+
+    std::cout << "TIMING:\n";
+    std::cout << "Avg Trial: " << US_TO_MS(avgTime / 10) << " Avg TrialStep: " << US_TO_MS(avgTS / 10) <<
+    " Avg Decay: " << US_TO_MS(avgSD / 10) << std::endl;
 }
 
 /**

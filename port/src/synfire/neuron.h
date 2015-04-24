@@ -22,10 +22,6 @@ class Neuron {
 
     CUDA_CALLABLE void ExciteInhibit( double amp, char p );
 
-    void RecordSpike( double t );
-
-    void ResetSpike();
-
     CUDA_CALLABLE double Get( char code ) {
         if (code == 'e') return _gexc;
         else if (code == 'i') return _ginh;
@@ -60,13 +56,12 @@ class Neuron {
     double _spfreq_ex, _spamp_ex;   // Spontaneous excitory frequency and amplitude.
     double _spfreq_in, _spamp_in;   // Spontaneous inhibitory frequency and amplitude.
 
-    double *_spkhist;               // history of spike times.
     double _LEAKREV;                // TODO: not sure what this means.
 
     // Two factors that limit development of cycles
     //  _cRef - refactory period 25 ms
     //  _cLatent - LTD (longterm depression) 20 ms
-    int _cLatent, _cRef, _cSpike;   // Latent, refractory, and spike counters.
+    int _cLatent, _cRef;   // Latent and refractory counters.
 
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""

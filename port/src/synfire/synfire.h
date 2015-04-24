@@ -93,18 +93,13 @@ class Synfire {
     const int trials, trial_duration, trial_steps;
 
     bool stats_on;
-    double stats_av;
 
     //~ Inhibition delay data.
     int dsteps;
     int *inh;
 
-
     // TODO: Not yet understood
     int group_s;
-
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    // TODO: Pending attributes from synfireGrowth.main()
 
   private:
     void Initialize();

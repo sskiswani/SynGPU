@@ -40,6 +40,8 @@ class Synapses {
     double GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
 
     // Accessors
+    int CountSynapses( char syn_type );
+
     inline double GetNSS( int label ) { return _NSS[label]; }
 
 //    inline double GetSynapticStrength( int pre, int post ) { return _G[pre * _size + post]; }

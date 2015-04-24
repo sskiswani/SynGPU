@@ -253,3 +253,18 @@ double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr )
         return _supcount[pre];
     }
 }
+
+int Synapses::CountSynapses(char syn_type) {
+    int *cn_type;
+    if(syn_type == 'a') {
+        cn_type = _actcount;
+    } else {
+        cn_type = _supcount;
+    }
+
+    int sum = 0;
+    for(int i = 0; i < _size; ++i) {
+        sum += cn_type[i];
+    }
+    return sum;
+}
