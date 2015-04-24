@@ -113,8 +113,11 @@ void CUSynfire::Initialize() {
     HANDLE_ERROR(cudaMalloc((void **) &_dnetwork, sizeof(Neuron) * network_size));
     HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
 
-
-
+    //~ Allocate and copy device instances of Synapses classes.
+    HANDLE_ERROR(cudaMalloc((void**)&_dconnectivity, sizeof(_connectivity)));
+    HANDLE_ERROR(cudaMemcpy(_dconnectivity, &_connectivity, sizeof(_connectivity), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMalloc((void**)&_dinh_str, sizeof(_inhibition_strength)));
+    HANDLE_ERROR(cudaMemcpy(_dinh_str, &_inhibition_strength, sizeof(_inhibition_strength), cudaMemcpyHostToDevice));
 }
 
 void CUSynfire::Run() {

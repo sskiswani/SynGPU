@@ -1,13 +1,12 @@
 # CXX := g++44
-# CXX := g++
 # CXXFLAGS := -std=c++0x
 # CXXFLAGS := -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -fno-strict-aliasing
 # CXXINCLUDES := -I./src/port/ -I./src/common/ -I./src/gpu/ -I./src/synfire/
 
-# NVCC := /usr/local/cuda/bin/nvcc
-# NVCCFLAGS := -O3 -arch sm_30
-# NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
-# NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
+NVCC := /usr/local/cuda/bin/nvcc
+NVCCFLAGS := -O3 -arch sm_30
+NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
+NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
 
 ##################################################################
 ### PROJECT SETTINGS
@@ -24,15 +23,17 @@ SRC_PATH = .
 DESTDIR = .
 
 # General compiler flags
+CXX := g++
 # COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g
 CXXFLAGS = -std=c++0x
 
 # Find all source files in the source directory, sorted by most
 # recently modified
 CPP_SOURCES := $(shell find . -path ./src/gpu -prune -o -name '*.cpp' -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
+GPU_SOURCES := $(shell find . (-name '*.cpp' -or -name '*.cu') ! -name "main.cpp" -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 
 # Add additional include paths
-INCLUDES := $(shell find -name '*.h' -printf '-I%h\n' | sort -u)
+INCLUDES := $(shell find . -name '*.h' -printf '-I%h\n' | sort -u)
 
 # Set the object file names, with the source directory stripped
 # from the path, and the build path prepended in its place

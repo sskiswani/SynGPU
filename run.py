@@ -60,3 +60,5 @@ if __name__ == "__main__":
 
         # print ssht.run('uname -a')
         sftp = paramiko.SFTPClient.from_transport(ssht.transport)
+
+# rsync = 'rsync -arzP --del %s %s' % (LOCAL_PATH, LINPROG_PATH)

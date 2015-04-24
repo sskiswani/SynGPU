@@ -25,24 +25,24 @@ class Synapses {
               double window,
               double eq_syn );
 
-    void Activate( char p, int pre, int post );
+    CUDA_CALLABLE void Activate( char p, int pre, int post );
 
-    void Deactivate( char p, int pre, int post );
+    CUDA_CALLABLE void Deactivate( char p, int pre, int post );
 
-    void Synaptic_Plasticity( int spiker, double t, double *spk_times, int spk_count );
+    CUDA_CALLABLE void Synaptic_Plasticity( int spiker, double t, double *spk_times, int spk_count );
 
-    double PotentiationFunc( double time, int spk_count, double *hist, char pd_type );
+    CUDA_CALLABLE double PotentiationFunc( double time, int spk_count, double *hist, char pd_type );
 
-    void CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type );
+    CUDA_CALLABLE void CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type );
 
-    void SynapticDecay();
+    CUDA_CALLABLE void SynapticDecay();
 
-    double GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
+    CUDA_CALLABLE double GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
 
     // Accessors
-    int CountSynapses( char syn_type );
+    CUDA_CALLABLE int CountSynapses( char syn_type );
 
-    inline double GetNSS( int label ) { return _NSS[label]; }
+    CUDA_CALLABLE inline double GetNSS( int label ) { return _NSS[label]; }
 
 //    inline double GetSynapticStrength( int pre, int post ) { return _G[pre * _size + post]; }
 
@@ -50,7 +50,7 @@ class Synapses {
      * @param pre   Label of synapse start neuron.
      * @param post  Label of synapse end neuron.
      */
-    inline double GetSynapticStrength( int pre, int post ) { return _G(post, pre); }
+    CUDA_CALLABLE inline double GetSynapticStrength( int pre, int post ) { return _G(post, pre); }
 
     inline double *GetSynapseStartingAt( int pre ) { return _G.row(pre); }
 

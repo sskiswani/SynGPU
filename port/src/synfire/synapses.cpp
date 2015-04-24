@@ -55,6 +55,9 @@ Synapses::Synapses( double fract_act,
 
         for (int pre = 0; pre < _size; ++pre) {
             for (int post = 0; post < _size; ++post) {
+                _actsyn(post, pre) = false;
+                _supsyn(post, pre) = false;
+
                 if (pre == post) continue;
 
                 if (ran1(&seed) <= fract_act) {
@@ -254,16 +257,16 @@ double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr )
     }
 }
 
-int Synapses::CountSynapses(char syn_type) {
+int Synapses::CountSynapses( char syn_type ) {
     int *cn_type;
-    if(syn_type == 'a') {
+    if (syn_type == 'a') {
         cn_type = _actcount;
     } else {
         cn_type = _supcount;
     }
 
     int sum = 0;
-    for(int i = 0; i < _size; ++i) {
+    for (int i = 0; i < _size; ++i) {
         sum += cn_type[i];
     }
     return sum;

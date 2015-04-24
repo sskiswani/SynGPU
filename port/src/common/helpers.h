@@ -3,6 +3,12 @@
 
 #include <stdlib.h>
 
+#ifdef __CUDACC__
+#define CUDA_CALLABLE __host__ __device__
+#else
+#define CUDA_CALLABLE
+#endif
+
 template<typename T>
 class TArray2 {
   public:
@@ -22,29 +28,29 @@ class TArray2 {
 
 
     // Accessors
-    inline int Rows() const { return _rows; }
+    CUDA_CALLABLE inline int Rows() const { return _rows; }
 
-    inline int Columns() const { return _cols; }
+    CUDA_CALLABLE inline int Columns() const { return _cols; }
 
-    inline size_t Bytes() const { return (_rows * _cols) * sizeof(T); }
+    CUDA_CALLABLE inline size_t Bytes() const { return (_rows * _cols) * sizeof(T); }
 
     // STL style iterators
-    inline const_iterator begin() const { return _data; }
+    CUDA_CALLABLE inline const_iterator begin() const { return _data; }
 
-    inline const_iterator end() const { return _data + (_rows * _cols); }
+    CUDA_CALLABLE inline const_iterator end() const { return _data + (_rows * _cols); }
 
-    inline iterator begin() { return _data; }
+    CUDA_CALLABLE inline iterator begin() { return _data; }
 
-    inline iterator end() { return _data + (_rows * _cols); }
+    CUDA_CALLABLE inline iterator end() { return _data + (_rows * _cols); }
 
-    inline iterator row( int y ) { return _data + (y * _cols); }
+    CUDA_CALLABLE inline iterator row( int y ) { return _data + (y * _cols); }
 
     // Operators
-    inline T &operator[]( const int i ) { return _data[i]; }
+    CUDA_CALLABLE inline T &operator[]( const int i ) { return _data[i]; }
 
-    inline T &operator()( int i ) { return _data[i]; }
+    CUDA_CALLABLE inline T &operator()( int i ) { return _data[i]; }
 
-    inline T &operator()( int x, int y ) { return _data[x + y * _cols]; }
+    CUDA_CALLABLE inline T &operator()( int x, int y ) { return _data[x + y * _cols]; }
 
   private:
     int _cols, _rows;

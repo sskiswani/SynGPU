@@ -156,6 +156,21 @@ void Synfire::Run() {
             std::cout << "\tSpikes: " << _spikeCounter << std::endl;
             std::cout << "\tAvg. Volts: " << avg_volts << std::endl;
             std::cout << "\tActive Connections: " << _connectivity.CountSynapses('a') << std::endl;
+
+            // Do error checking.
+            bool *send_to;
+            int send_count, act_count;
+            for(int i = 0; i < network_size; ++i) {
+                send_count = _connectivity.GetPostSynapticLabel('a', i, send_to);
+                act_count = 0;
+                for(int j = 0; j < network_size; ++j) {
+                    if(send_to[j] == true) ++act_count;
+                }
+
+                if(act_count != send_count) {
+                    std::cout << "Neuron[" << i << "] reports " << send_count << " connections but actually has " << act_count << " connections." << std::endl;
+                }
+            }
         }
 
         // Reset neuron values for next trial
@@ -306,17 +321,17 @@ void Synfire::DoSpikeLoop() {
         if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
             int j_nss = _connectivity.GetNSS(spiker); // TODO: Figure out NSS indexing with send_to.
 
-            for(int k = 0, j = 0; k < network_size && j < j_nss; ++k) {
-                if(send_to[k] == false) continue;
-                _network[k].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, k), 'e');
+            for(int post = 0, j = 0; post < network_size && j < j_nss; ++post) {
+                if(send_to[post] == false) continue;
+                _network[post].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, post), 'e');
                 ++j;
             }
         } else { // Spiking neuron isn't saturated, send spikes along active connections
             send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
 
-            for (int k = 0, j = 0; k < network_size && j < send_count; k++) {
-                if(send_to[k] == false) continue;
-                _network[k].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, k), 'e');
+            for (int post = 0, j = 0; post < network_size && j < send_count; post++) {
+                if(send_to[post] == false) continue;
+                _network[post].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, post), 'e');
                 ++j;
             }
         }
