@@ -19,7 +19,7 @@ typedef std::vector<row_t> matrix_t;
 class Neuron;
 
 //~ CUDA Methods
-__global__ void SynapticDecayKernel(int syn_size);
+__global__ void SynapticDecayKernel( Synapses* dconnectivity, int syn_size );
 
 class CUSynfire {
   public:
