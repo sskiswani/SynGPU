@@ -100,11 +100,6 @@ void CUSynfire::Initialize() {
     for (int i = 0; i < dsteps; ++i) inh[i] = 0;
 
     //==========================================
-    //~ Initialize Synapses.
-//    _connectivity = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
-//    _inhibition_strength = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
-
-    //==========================================
     //~ Initialize Neurons & their helpers
     _network = new Neuron[network_size];
     for (int i = 0; i < network_size; ++i) {
@@ -118,10 +113,11 @@ void CUSynfire::Initialize() {
     HANDLE_ERROR(cudaMalloc((void **) &_dnetwork, sizeof(Neuron) * network_size));
     HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
 
+
+
 }
 
 void CUSynfire::Run() {
-
     double start, stop;
 
     // From L1230:

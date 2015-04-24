@@ -290,7 +290,7 @@ void Synfire::DoSpikeLoop() {
     int spiker;
     row_t spk_hist; // Neuron's spike history data.
     bool *send_to;  // pointer to array containing post neurons.
-    int send_count; // number of post neurons receiving spike.
+    int send_count;
 
     for (std::vector<int>::iterator itr = _whospiked.begin(); itr != _whospiked.end(); ++itr) {
         spiker = (*itr);
@@ -304,18 +304,20 @@ void Synfire::DoSpikeLoop() {
         // L1348: Emit spikes
         // Check to see if spiking neuron is saturated
         if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
-            int j_nss = _connectivity.GetNSS(spiker);
+            int j_nss = _connectivity.GetNSS(spiker); // TODO: Figure out NSS indexing with send_to.
 
-            // TODO: can't just loop over send_to anymore.
-            for (int k = 0; k < j_nss; ++k) { // Send spikes along super synapses
-                _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+            for(int k = 0, j = 0; k < network_size && j < j_nss; ++k) {
+                if(send_to[k] == false) continue;
+                _network[k].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, k), 'e');
+                ++j;
             }
         } else { // Spiking neuron isn't saturated, send spikes along active connections
             send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
 
-            // TODO: can't just loop over send_to anymore.
-            for (int k = 0; k < send_count; k++) {
-                _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+            for (int k = 0, j = 0; k < network_size && j < send_count; k++) {
+                if(send_to[k] == false) continue;
+                _network[k].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, k), 'e');
+                ++j;
             }
         }
 

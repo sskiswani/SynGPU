@@ -60,10 +60,10 @@ $(BIN_NAME): $(OBJECTS)
 # Removes all build files
 .PHONY: clean
 clean:
-	rm -rf *.o *~
-
-realclean:
-	rm -rf *.o *~ $(BIN_NAME)
+	rm -r *.o *~
 	# TEMP solution to cleaning up object files.
 	find . -type f -name '*.o' -exec rm {} +
 	find . -type f -name '*.d' -exec rm {} +
+
+realclean: clean
+	rm $(BIN_NAME)
