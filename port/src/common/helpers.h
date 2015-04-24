@@ -2,6 +2,7 @@
 #define PORT_HELPERS_H
 
 #include <stdlib.h>
+#include <iostream>
 
 #ifdef __CUDACC__
 #define CUDA_CALLABLE __host__ __device__
@@ -18,7 +19,7 @@ class TArray2 {
     typedef const value_type *const_iterator;
 
     TArray2( int cols = 1, int rows = 1 )
-            : _cols(cols), _rows(rows) {
+            : _cols(cols), _rows(rows), _data(0) {
         _data = new T[_cols * _rows];
     }
 

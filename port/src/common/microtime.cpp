@@ -1,5 +1,5 @@
-#include <sys/time.h>
 #include "microtime.h"
+#include <Windows.h>
 
 #define TEST 0 /* Set to 0 except when testing the code or timer resolution */
 
@@ -13,13 +13,32 @@ double get_microtime_resolution(void) {
 
     return time2 - time1;
 }
+static bool initialized = false;
+static LARGE_INTEGER StartingTime, EndingTime, ElapsedMicroseconds;
+static LARGE_INTEGER Frequency;
 
 double microtime(void) {
-    struct timeval t;
+	if (initialized == false) {
+		QueryPerformanceFrequency( &Frequency );
+		QueryPerformanceCounter( &StartingTime );
+		initialized = true;
+	}
 
-    gettimeofday(&t, 0);
+	QueryPerformanceCounter( &EndingTime );
+	ElapsedMicroseconds.QuadPart = EndingTime.QuadPart - StartingTime.QuadPart;
 
-    return 1.0e6 * t.tv_sec + (double) t.tv_usec;
+	//
+	// We now have the elapsed number of ticks, along with the
+	// number of ticks-per-second. We use these values
+	// to convert to the number of elapsed microseconds.
+	// To guard against loss-of-precision, we convert
+	// to microseconds *before* dividing by ticks-per-second.
+	//
+
+	ElapsedMicroseconds.QuadPart *= 1000000;
+	ElapsedMicroseconds.QuadPart /= Frequency.QuadPart;
+
+    return (double) ElapsedMicroseconds.QuadPart;
 }
 
 
