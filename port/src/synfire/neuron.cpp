@@ -36,21 +36,9 @@ Neuron::Neuron( int label,
                 double inh_amp,
                 double global_inhibition ) {
     Initialize(label, exc_freq, inh_freq, exc_amp, inh_amp, global_inhibition, DEFAULT_LEAK);
-//    SetSpinFrequency(exc_freq, inh_freq);
-//    _spamp_ex = exc_amp;
-//    _spamp_in = inh_amp;
-//
-//    _global_in = global_inhibition;
-//
-//    _label = label;
-//    _cLatent = 0;
-//    _cRef = 0;
-//    _cSpike = 0;
-//
-//    Reset();
-//    _LEAKREV = Neuron::DEFAULT_LEAK;
 }
 
+CUDA_CALLABLE
 bool Neuron::Update( float dt ) {
     bool spike = false;
 
@@ -91,6 +79,7 @@ bool Neuron::Update( float dt ) {
     return spike;
 }
 
+CUDA_CALLABLE
 void Neuron::neur_dyn( double dt, bool no_volt ) {
     //update membrane potential,conductances with 4th order RK
     double c1[3], c2[3], c3[3], c4[3];
@@ -141,6 +130,8 @@ void Neuron::neur_dyn( double dt, bool no_volt ) {
     _ginh += (c1[1] + 2 * c2[1] + 2 * c3[1] + c4[1]) / 6.0;
 }
 
+
+CUDA_CALLABLE
 void Neuron::ExciteInhibit( double amp, char p ) {
     if (p == 'e') _gexc += amp;
     else if (p == 'i') _ginh += amp;
@@ -149,6 +140,8 @@ void Neuron::ExciteInhibit( double amp, char p ) {
 /**
  * Reset the Neuron to a random state.
  */
+
+CUDA_CALLABLE
 void Neuron::Reset() {
     static double gexc_avg = 0.5 * Neuron::DECAY_EXCITORY * _spamp_ex * _spfreq_ex;
     static double ginh_avg = 0.5 * Neuron::DECAY_INHIBITORY * _spamp_in * _spfreq_in;

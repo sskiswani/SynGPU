@@ -96,6 +96,7 @@ Synapses::Synapses( double fract_act,
  *  @param pre      pre-neuron label
  *  @param post     post-neuron label
  */
+CUDA_CALLABLE
 void Synapses::Activate( char p, int pre, int post ) {
     if (p == 'a') {
         ++(_actcount[pre]);
@@ -113,6 +114,7 @@ void Synapses::Activate( char p, int pre, int post ) {
  *  @param pre      pre-neuron label
  *  @param post     post-neuron label
  */
+CUDA_CALLABLE
 void Synapses::Deactivate( char p, int pre, int post ) {
     if (p == 'a') {
         --(_actcount[pre]);
@@ -131,6 +133,7 @@ void Synapses::Deactivate( char p, int pre, int post ) {
  * @param spk_times     A log of the times the spiking neuron has previous spiked.
  * @param spk_count     Size of the spk_times array.
  */
+CUDA_CALLABLE
 void Synapses::Synaptic_Plasticity( int spiker, double t, double *spk_times, int spk_count ) {
     double tempPot, tempDep, GPot, GDep;
 
@@ -174,6 +177,7 @@ void Synapses::Synaptic_Plasticity( int spiker, double t, double *spk_times, int
  * @param spk_times     A log of the times the spiking neuron has previous spiked.
  * @param pd_type       'p' for potentiation, 'd' for depression
  */
+CUDA_CALLABLE
 double Synapses::PotentiationFunc( double time, int spk_count, double *spk_times, char pd_type ) {
     // ref L632
     double res = 0.0;
@@ -216,6 +220,7 @@ double Synapses::PotentiationFunc( double time, int spk_count, double *spk_times
  * @param syn_type  'a' for active, 's' for super
  * @param pd_type   'p' for potentiation, 'd' for depression
  */
+CUDA_CALLABLE
 void Synapses::CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type ) {
     double thres;
     if (syn_type == 'a') thres = _actthres;
@@ -236,6 +241,7 @@ void Synapses::CheckThreshold( double syn_str, int pre, int post, char syn_type,
     }
 }
 
+CUDA_CALLABLE
 void Synapses::SynapticDecay() {
     // TODO: Verify indexing (it should be right considering the calls to CheckThreshold).
     for (int i = 0, pre = 0; pre < _size; ++pre) {
@@ -247,6 +253,7 @@ void Synapses::SynapticDecay() {
     }
 }
 
+CUDA_CALLABLE
 double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr ) {
     if (syn_type == 'a') {
         post_arr = _actsyn.row(pre);
@@ -257,6 +264,7 @@ double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr )
     }
 }
 
+CUDA_CALLABLE
 int Synapses::CountSynapses( char syn_type ) {
     int *cn_type;
     if (syn_type == 'a') {

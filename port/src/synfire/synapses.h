@@ -25,14 +25,53 @@ class Synapses {
               double window,
               double eq_syn );
 
+    /**
+     *  Activate a synapse between two neurons.
+     *
+     *  @param p        'a' for active, 's' for super
+     *  @param pre      pre-neuron label
+     *  @param post     post-neuron label
+     */
     CUDA_CALLABLE void Activate( char p, int pre, int post );
 
+    /**
+     *  Deactivate a synapse between two neurons.
+     *
+     *  @param p        'a' for active, 's' for super
+     *  @param pre      pre-neuron label
+     *  @param post     post-neuron label
+     */
     CUDA_CALLABLE void Deactivate( char p, int pre, int post );
 
+    /**
+     * Synaptic_Plasticity.
+     *
+     * @param spiker        Label of the neuron that spiked.
+     * @param t             Elapsed time of the current trial.
+     * @param spk_times     A log of the times the spiking neuron has previous spiked.
+     * @param spk_count     Size of the spk_times array.
+     */
     CUDA_CALLABLE void Synaptic_Plasticity( int spiker, double t, double *spk_times, int spk_count );
 
+    /**
+     * PotentiationFunc
+     *
+     * @param time          Elapsed time of the trial.
+     * @param spk_count     Size of the spk_times array.
+     * @param spk_times     A log of the times the spiking neuron has previous spiked.
+     * @param pd_type       'p' for potentiation, 'd' for depression
+     */
     CUDA_CALLABLE double PotentiationFunc( double time, int spk_count, double *hist, char pd_type );
 
+    /**
+     * Ensure that the synaptic strength of (pre, post) is within threshold limit.
+     *
+     * @param syn_str   The new synapse strength.
+     * @param pre       Label of synapse start neuron.
+     * @param post      Label of synapse end neuron.
+     * @param syn_type  'a' for active, 's' for super
+     * @param pd_type   'p' for potentiation, 'd' for depression
+     */
     CUDA_CALLABLE void CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type );
 
     CUDA_CALLABLE void SynapticDecay();

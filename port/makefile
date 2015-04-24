@@ -24,6 +24,7 @@ DESTDIR = .
 
 # General compiler flags
 CXX := g++
+
 # COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g
 CXXFLAGS = -std=c++0x
 
