@@ -4,8 +4,12 @@
 _*
 args.txt
 
-# Binaries
+# Binaries & Compiler stuff
 *.exe
+bin/
+ref/
+*.d
+*.o
 
 # VS Garbage
 *.lnk
