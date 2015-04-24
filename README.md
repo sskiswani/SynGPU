@@ -11,6 +11,9 @@ Arguments saved in a text file can be referenced by prefixing the filename with 
 #TODO
 
 - [x] Useful organization + separation of concerns
+- [x] Get SynfireGrowth working on the CPU locally
+- [ ] Get SynfireGrowth working on `linprog.cs.fsu.edu`
+- [ ] Get CUSynfire working on `gpu.cs.fsu.edu`
 - [ ] Write the CUDA loaders
 - [ ] Keep CMake and make files consistent with each other.
 - [x] Fill this out
@@ -18,8 +21,8 @@ Arguments saved in a text file can be referenced by prefixing the filename with 
 
 #Deliverables
 
-- Source Code in `port/` folder.
-- PDFs of the project proposal and report.
+- Tar of `port/*`
+- PDFs of `rpt/proposal.tex` and `rpt/report.tex`.
 - This README file.
 - `run.py`
 
