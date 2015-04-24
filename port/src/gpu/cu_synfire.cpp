@@ -114,9 +114,9 @@ void CUSynfire::Initialize() {
     HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
 
     //~ Allocate and copy device instances of Synapses classes.
-    HANDLE_ERROR(cudaMalloc((void**)&_dconnectivity, sizeof(_connectivity)));
+    HANDLE_ERROR(cudaMalloc((void **) &_dconnectivity, sizeof(_connectivity)));
     HANDLE_ERROR(cudaMemcpy(_dconnectivity, &_connectivity, sizeof(_connectivity), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMalloc((void**)&_dinh_str, sizeof(_inhibition_strength)));
+    HANDLE_ERROR(cudaMalloc((void **) &_dinh_str, sizeof(_inhibition_strength)));
     HANDLE_ERROR(cudaMemcpy(_dinh_str, &_inhibition_strength, sizeof(_inhibition_strength), cudaMemcpyHostToDevice));
 }
 
@@ -333,3 +333,21 @@ double CUSynfire::GetAverageVoltage() {
 
     return (avg / network_size);
 }
+
+__global__
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "CannotResolve"
+void SynapticDecayKernel( Synapses* dconnectivity, int syn_size ) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+
+    if (i < syn_size) {
+        int pre = i / syn_size;
+        double syndecay = dconnectivity->GetSynDecay();
+        for (int j = 0; j < syn_size; ++j) {
+            int syn_str = dconnectivity->GetSynapticStrength(pre, j);
+            dconnectivity->CheckThreshold(syn_str, pre, j, 'a', 'd');
+            dconnectivity->CheckThreshold(syn_str, pre, j, 's', 'd');
+        }
+    }
+}
+#pragma clang diagnostic pop

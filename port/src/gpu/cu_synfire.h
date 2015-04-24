@@ -5,6 +5,7 @@
 #define CUDA_CALLABLE __host__ __device__
 #else
 #define CUDA_CALLABLE
+#define __global__
 #endif
 
 #include <vector>
@@ -16,6 +17,9 @@ typedef std::vector<double> row_t;
 typedef std::vector<row_t> matrix_t;
 
 class Neuron;
+
+//~ CUDA Methods
+__global__ void SynapticDecayKernel(int syn_size);
 
 class CUSynfire {
   public:
@@ -46,7 +50,6 @@ class CUSynfire {
     //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Helpers & Accessors
     double GetAverageVoltage();
-
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Member constants.
