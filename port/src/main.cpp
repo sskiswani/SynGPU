@@ -1,6 +1,7 @@
 #include <iostream>
-#include "common\utility.h"
-#include "synfire\synfire.h"
+
+#include "utility.h"
+#include "synfire.h"
 
 int main( int argc, char *argv[] ) {
     struct Timer timer;

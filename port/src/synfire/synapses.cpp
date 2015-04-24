@@ -1,5 +1,5 @@
 #include <math.h>
-#include "../common/random.h"
+#include "random.h"
 #include "synapses.h"
 #include "neuron.h"
 

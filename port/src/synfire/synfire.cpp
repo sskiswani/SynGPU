@@ -1,8 +1,7 @@
 #include <vector>
 #include <iostream>
-#include <time.h>
-#include "../common/random.h"
-#include "../common/microtime.h"
+#include "random.h"
+#include "microtime.h"
 #include "synfire_helpers.h"
 #include "synfire.h"
 #include "neuron.h"
@@ -118,9 +117,7 @@ void Synfire::Run() {
     double start, stop;
 
     // From L1230:
-	double tTa[10];
-	double tSDa[10];
-	double *tTSa = new double[trial_steps];
+    double tTa[10], tTSa[trial_steps], tSDa[10];
     double tT[3], tTS[3], tMPL[3], tSL[3], tSynDecay[3];
     tMPL[2] = 0, tSL[2] = 0, tTS[2] = 0, tSynDecay[2] = 0;
 
