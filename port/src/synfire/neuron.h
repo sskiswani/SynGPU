@@ -32,11 +32,11 @@ class Neuron {
         else if (code == 'v') return _volts;
     }
 
-    CUDA_CALLABLE double Volts() { return _volts; }
+    CUDA_CALLABLE inline double Volts() { return _volts; }
 
-    CUDA_CALLABLE double Excitatory() { return _gexc; }
+    CUDA_CALLABLE inline double Excitatory() { return _gexc; }
 
-    CUDA_CALLABLE double Inhibitory() { return _ginh; }
+    CUDA_CALLABLE inline double Inhibitory() { return _ginh; }
 
   private:
     CUDA_CALLABLE void Initialize( int label,

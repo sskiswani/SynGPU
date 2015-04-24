@@ -24,56 +24,53 @@ Synapses::Synapses( double fract_act,
                     int network_size,
                     int tempNSS,
                     double window,
-                    double eq_syn) {
-    _size = network_size;
+                    double eq_syn )
+        : _size(network_size),
+          _G(_size, _size),
+          _actsyn(_size, _size),
+          _supsyn(_size, _size) {
     _window = window;
-    _actthres = act_thres;
-    _supthres = sup_thres;
-    _synmax = syn_max;
-    _syndec = syn_decay;
     _GLTP = eq_syn;
 
-    // Allocate data
-    _G = new double[_size * _size];
+    _actthres = act_thres;
+    _supthres = sup_thres;
 
+    _synmax = syn_max;
+    _syndec = syn_decay;
+
+    // Allocate data
     _actcount = new int[_size];
     _supcount = new int[_size];
 
-    _actsyn = new int *[_size];
-    _supsyn = new int *[_size];
-
     _NSS = new int[_size];
+
     for (int i = 0; i < _size; ++i) {
         _NSS[i] = tempNSS;
+        _actcount[i] = 0;
+        _supcount[i] = 0;
     }
 
-    if (form_opt == 1) {
-        // Randomly activate fract_act of all synapses
-        for (int y = 0, i = 0; y < _size; ++y) {
-            _actcount[y] = 0;
-            _supcount[y] = 0;
-            for (int x = 0; x < _size; ++x, ++i) {
-                if (x == y) { // self synapses not allowed.
-                    _G[i] = 0;
-                    continue;
-                }
+    if (form_opt == 1) { // Randomly activate fract_act of all synapses
+        double value;
+
+        for (int pre = 0; pre < _size; ++pre) {
+            for (int post = 0; post < _size; ++post) {
+                if (pre == post) continue;
 
                 if (ran1(&seed) <= fract_act) {
-                    _G[i] = _actthres + (_synmax - _actthres) * ran1(&seed);
-                    Activate('a', y, x);
+                    value = _actthres + (_synmax - _actthres) * ran1(&seed);
+                    Activate('a', pre, post);
                 } else {
-                    _G[i] = _actthres * ran1(&seed);
+                    value = _actthres * ran1(&seed);
                 }
-                if (_G[i] > _synmax) _G[i] = _synmax;
+
+                _G(post, pre) = (value > _synmax) ? _synmax : value;
             }
         }
-    } else {
-        // Default initialization.
+    } else { // Default initialization.
         for (int i = 0; i < _size; ++i) {
-            _actcount[i] = 0;
-            _supcount[i] = 0;
             for (int j = 0; j < _size; ++j) {
-                _G[i * _size + j] = glob;
+                _G(i, j) = glob;
             }
         }
     }
@@ -89,78 +86,58 @@ Synapses::Synapses( double fract_act,
  *  To avoid thread divergence for the first two switch statements and last if statement
  *  have _act_syn(in constructor or wherever it happens) be allocated some amount of memory(regardless if empty)
  *  so we can get rid of the if(*l != 0) statment
+ *
+ *  Activate a synapse between two neurons.
+ *
+ *  @param p        'a' for active, 's' for super
+ *  @param pre      pre-neuron label
+ *  @param post     post-neuron label
  */
 void Synapses::Activate( char p, int pre, int post ) {
-    // 'a' for active, 's' for super
-    int *l, *m;
     if (p == 'a') {
-        l = &_actcount[pre]; // l points to # of active synapses of pre.
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _actsyn[pre];
+        ++(_actcount[pre]);
+        _actsyn(post, pre) = true;
     } else if (p == 's') {
-        l = &_supcount[pre];
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _supsyn[pre];
-    } else {
-        // Invalid argument
-        return;
+        ++(_supcount[pre]);
+        _supsyn(post, pre) = true;
     }
-
-    m[(*l)] = post; // Place new synapses here.
-    ++(*l);         // Increment counter.
 }
 
+/**
+ *  Deactivate a synapse between two neurons.
+ *
+ *  @param p        'a' for active, 's' for super
+ *  @param pre      pre-neuron label
+ *  @param post     post-neuron label
+ */
 void Synapses::Deactivate( char p, int pre, int post ) {
-    // 'a' for active, 's' for super
-    int *temp, *l, *m;
     if (p == 'a') {
-        l = &_actcount[pre]; // l points to # of active synapses of pre.
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _actsyn[pre];
+        --(_actcount[pre]);
+        _actsyn(post, pre) = false;
     } else if (p == 's') {
-        l = &_supcount[pre];
-        // TODO: Handle reallocation of old supcount and supsyn.
-        m = _supsyn[pre];
-    } else {
-        // Invalid argument
-        return;
-    }
-
-    if ((*l) != 1) { // If the last post is not being deactivated...
-        // TODO: Need to handle the shrinking/increasing values.
-        // Don't include post when placing values in temp back into supsyn[pre], so move the last value into its place
-        for (int i = 0; i < (*l); ++i) {
-            if (temp[i] == post) {
-                temp[i] = temp[(*l) - 1];
-                break;
-            }
-        }
-
-        --(*l);
-
-        for (int i = 0; i < (*l); ++i) {
-            m[i] = temp[i];
-        }
-
-        delete[] temp;
-    } else { // Last post is being deactivated.
-        --(*l);
+        --(_supcount[pre]);
+        _supsyn(post, pre) = false;
     }
 }
 
-void Synapses::Synaptic_Plasticity( int spiker, double t, Neuron **net ) {
-    double *spk_times;
-    int spk_count;
+/**
+ * Synaptic_Plasticity.
+ *
+ * @param spiker        Label of the neuron that spiked.
+ * @param t             Elapsed time of the current trial.
+ * @param spk_times     A log of the times the spiking neuron has previous spiked.
+ * @param spk_count     Size of the spk_times array.
+ */
+void Synapses::Synaptic_Plasticity( int spiker, double t, double *spk_times, int spk_count ) {
     double tempPot, tempDep, GPot, GDep;
 
-    int g_idx = spiker * _size;
     for (int k = 0; k < _size; ++k) {
         if (k == spiker) continue;
 
-        GPot = _G[k * _size + spiker];
-        GDep = _G[g_idx + k];
-        // TODO: Access spike history of neuron.
-//        spk_count = net[k]->get_spkhist(spk_times);
+        // TODO: Are these method calls correct? Figure out correct axes.
+        GPot = _G(spiker, k);
+        GDep = _G(k, spiker);
+
         if (spk_count != 0 && spk_times[spk_count - 1] + _window >= t) {
             tempPot = GPot + AMPLITUDE_LTP * _GLTP * PotentiationFunc(t, spk_count, spk_times, 'p'); //potentiation
             tempDep = GDep * (1 - AMPLITUDE_LTP * PotentiationFunc(t, spk_count, spk_times, 'd')); //depression
@@ -172,22 +149,30 @@ void Synapses::Synaptic_Plasticity( int spiker, double t, Neuron **net ) {
             if (_supcount[k] < _NSS[k] || (_supcount[k] == _NSS[k] && GPot >= _supthres)) {
                 CheckThreshold(tempPot, k, spiker, 'a', 'p');
                 CheckThreshold(tempPot, k, spiker, 's', 'p');
-                _G[k * _size + spiker] = tempPot;
+                _G(spiker, k) = tempPot;
             }
 
             //Depress G[spiker][k]
             if (_supcount[spiker] < _NSS[spiker] || (_supcount[spiker] == _NSS[spiker] && GDep >= _supthres)) {
                 CheckThreshold(tempDep, spiker, k, 'a', 'd');
                 CheckThreshold(tempDep, spiker, k, 's', 'd');
-                _G[g_idx + k] = tempDep;
+                _G(k, spiker) = tempDep;
             }
         }
+
     }
 }
 
-double Synapses::PotentiationFunc( double time, int spsc, double *hist, char pd_type ) {
+/**
+ * PotentiationFunc
+ *
+ * @param time          Elapsed time of the trial.
+ * @param spk_count     Size of the spk_times array.
+ * @param spk_times     A log of the times the spiking neuron has previous spiked.
+ * @param pd_type       'p' for potentiation, 'd' for depression
+ */
+double Synapses::PotentiationFunc( double time, int spk_count, double *spk_times, char pd_type ) {
     // ref L632
-    // p=='p' for potentiation, p=='d' for depression
     double res = 0.0;
     double a;
     double delt, pwt, inv_dect;
@@ -203,8 +188,8 @@ double Synapses::PotentiationFunc( double time, int spsc, double *hist, char pd_
         return 0.0;
     }
 
-    for (int i = spsc - 1; i >= 0; --i) {
-        delt = time - hist[i];
+    for (int i = spk_count - 1; i >= 0; --i) {
+        delt = time - spk_times[i];
         if (delt > _window) break;
 
         if (delt <= pwt) {
@@ -219,20 +204,27 @@ double Synapses::PotentiationFunc( double time, int spsc, double *hist, char pd_
     return res;
 }
 
+/**
+ * Ensure that the synaptic strength of (pre, post) is within threshold limit.
+ *
+ * @param syn_str   The new synapse strength.
+ * @param pre       Label of synapse start neuron.
+ * @param post      Label of synapse end neuron.
+ * @param syn_type  'a' for active, 's' for super
+ * @param pd_type   'p' for potentiation, 'd' for depression
+ */
 void Synapses::CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type ) {
-    //p=='a'/p=='s', check if G crossed active/super threshold
-    //q == 'p' for potentiation, q == 'd' for depression
     double thres;
     if (syn_type == 'a') thres = _actthres;
-    else if (pd_type == 's') thres = _supthres;
+    else if (syn_type == 's') thres = _supthres;
     else return;// ERROR
 
     if (pd_type == 'p') {
-        if (_G[pre * _size + post] < thres && syn_str >= thres) {
+        if (_G(post, pre) < thres && syn_str >= thres) {
             Activate(syn_type, pre, post);
         }
     } else if (pd_type == 'd') {
-        if (_G[pre * _size * post] >= thres && syn_str < thres) {
+        if (_G(post, pre) >= thres && syn_str < thres) {
             Deactivate(syn_type, pre, post);
         }
     } else {
@@ -242,21 +234,22 @@ void Synapses::CheckThreshold( double syn_str, int pre, int post, char syn_type,
 }
 
 void Synapses::SynapticDecay() {
-    for (int i = 0, y = 0; y < _size; ++y) {
-        for (int x = 0; x < _size; ++x, ++i) {
-            CheckThreshold(_G[i] * _syndec, y, x, 'a', 'd');
-            CheckThreshold(_G[i] * _syndec, y, x, 's', 'd');
+    // TODO: Verify indexing (it should be right considering the calls to CheckThreshold).
+    for (int i = 0, pre = 0; pre < _size; ++pre) {
+        for (int post = 0; post < _size; ++post, ++i) {
+            CheckThreshold(_G[i] * _syndec, pre, post, 'a', 'd');
+            CheckThreshold(_G[i] * _syndec, pre, post, 's', 'd');
             _G[i] *= _syndec;
         }
     }
 }
 
-double Synapses::GetPostSynapticLabel( char syn_type, int pre, int *&post ) {
-    if(syn_type == 'a') {
-        post = _actsyn[pre];
+double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr ) {
+    if (syn_type == 'a') {
+        post_arr = _actsyn.row(pre);
         return _actcount[pre];
     } else { //  if(syn_type == 's')
-        post = _supsyn[pre];
+        post_arr = _supsyn.row(pre);
         return _supcount[pre];
     }
 }

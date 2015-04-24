@@ -10,7 +10,7 @@ int main( int argc, char *argv[] ) {
 
     // TODO: Allocate Synpses & Neurons
     timer.Start();
-    Synfire syn(200);
+    Synfire syn = Synfire::CreateSynfire();
     timer.Stop();
     std::cout << "Initialization time: " << timer.Duration() << " ms." << std::endl;
 

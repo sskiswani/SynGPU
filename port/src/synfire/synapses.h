@@ -1,6 +1,8 @@
 #ifndef PORT_SYNAPSE_H
 #define PORT_SYNAPSE_H
 
+#include "helpers.h"
+
 #ifdef __CUDACC__
 #define CUDA_CALLABLE __host__ __device__
 #else
@@ -27,20 +29,28 @@ class Synapses {
 
     void Deactivate( char p, int pre, int post );
 
-    void Synaptic_Plasticity( int spiker, double t, Neuron **net );
+    void Synaptic_Plasticity( int spiker, double t, double *spk_times, int spk_count );
 
-    double PotentiationFunc( double time, int spsc, double *hist, char pd_type );
+    double PotentiationFunc( double time, int spk_count, double *hist, char pd_type );
 
     void CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type );
 
     void SynapticDecay();
 
-    double GetPostSynapticLabel( char syn_type, int pre, int *&post );
+    double GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
 
     // Accessors
     inline double GetNSS( int label ) { return _NSS[label]; }
 
-    inline double GetSynapticStrength( int pre, int post ) { return _G[pre * _size + post]; }
+//    inline double GetSynapticStrength( int pre, int post ) { return _G[pre * _size + post]; }
+
+    /**
+     * @param pre   Label of synapse start neuron.
+     * @param post  Label of synapse end neuron.
+     */
+    inline double GetSynapticStrength( int pre, int post ) { return _G(post, pre); }
+
+    inline double *GetSynapseStartingAt( int pre ) { return _G.row(pre); }
 
     inline int GetActCount( int i ) { return _actcount[i]; }
 
@@ -55,18 +65,16 @@ class Synapses {
     const static double POTENTIATION_FUNT;  // Potentiation
     const static double DEPRESSION_FUNT;    // Depression
 
-
     //~ Internal data.
     int _size;  // size of the network.
     double _window; // history time window size (ms)
-    double *_G; // Synaptic strength matrix;
-    int *_actcount, *_supcount, *_NSS;      // Arrays tracking numbers of active and super cns of each neuron in the network
     double _actthres, _supthres, _synmax;   // Active, super thresholds, synapse cap
     double _syndec, _GLTP;                  //synaptic decay
 
-    // TODO: Can these be improved?
-    // Convert to matrices of [SIZE][SIZE] and use -1 for unused values.
-    int **_actsyn, **_supsyn;             // Arrays containing the postsynaptic cns of each neuron in the network
+    int *_actcount, *_supcount, *_NSS;  // Arrays tracking numbers of active and super cns of each neuron in the network
+    TArray2<double> _G;                // Synaptic strength matrix;
+    TArray2<bool> _actsyn, _supsyn;     // Arrays containing the postsynaptic cns of each neuron in the network
+
 };
 
 #endif //PORT_SYNAPSE_H

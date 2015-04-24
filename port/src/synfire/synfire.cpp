@@ -5,116 +5,153 @@
 #include "synfire.h"
 #include "neuron.h"
 
-
 //"""""""""""""""""""""""""""""""""""""""""""""""""
 // TODO: Pending attributes from the top of synfireGrowth.cpp.
-int runid = 1;  //identifies the particular run
-bool LOAD = false; //1 means load data
-bool ILOAD = false;
-
-//Tracking variables during trial
-std::ofstream track_volt; //stream that tracks volt and conds during trial
-int volt_post, volt_pre = 0; //contains the label of the neuron whose voltage is being tracked, it postsynaptic to volt_pre
-
-double t = 0.0; //current time in ms
-int *whospike, whocount = 0;  //tracks labels of neurons that spike during current step, length of whospike[]
 int *group_rank; //contains group ranking of each neuron after chain network forms
 
-//Spontaneous activity defaults
-double exfreq = 40, infreq = 200, examp = 1.3, inamp = .1, global_i = .3, inh_d = 0, leak = -85.0;
+SynfireParameters::SynfireParameters() {
+    //~ Run Parameters
+    timestep = 0.1;
+    network_size = 200;
+    trials = 200000;
+    trial_duration = 2000;
 
-//Synapses defaults
-int NSS, tempNSS = 10; //max # of supersynapses allowed
-double act = .2, sup = .4, cap = .6, frac = .1, isynmax = .3, eq_syn = .3;
-double syndec = .99999;
-int conn_type = 1;
-bool plasticity = true;
-double window = 200; //history time window size (ms)
+    //~ Spontaneous activity defaults.
+    exfreq = 40;
+    infreq = 200;
+    examp = 1.3;
+    inamp = .1;
+    global_i = .3;
+    inh_d = 0;
+    leak = -85.0;
 
-//Training defaults
-int ntrain = 10, ntrg = 1; //number of training neurons
-bool man_tt = false; //manual training time bool (false if training occurs at t=0)
-double *train_times;
-double training_f = 1.5; //training spike frequency (ms)^(-1)
-double training_amp = .7; //training spike strength
-double training_t = 8.0; //training duration in ms
+    //~ Synapses defaults
+    NSS = network_size;
+    tempNSS = 10;
 
-// Stats
-bool stats_on = true;
-int sc = 0; //total spike counter
-double av = 0;
+    act = 0.2;
+    sup = 0.4;
+    cap = 0.6;
+    frac = 0.1;
+    isynmax = 0.3;
+    eq_syn = 0.3;
 
+    syndec = 0.99999;
+    conn_type = 1;
+    plasticity = true;
+    window = 200;
 
-Synfire::Synfire( int nsize )
-        : DT(0.1),
-          INV_DT(1 / DT),
-          trials(200000),
-          trial_duration(2000),
-          trial_steps((int) (trial_duration * INV_DT)),
-          network_size(nsize),
-          _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
-          _inhibition_strength(1, global_i, 1, 1, 1, 1, 2, network_size, tempNSS, window, eq_syn) {
-    Initialize();
+    //~ Training defaults
+    ntrain = 10;
+    ntrg = 1;
+    man_tt = false;
+    training_f = 1.5;
+    training_amp = 0.7;
+    training_t = 8.0;
 }
 
-Synfire::Synfire( int nsize, double dt, int num_trials, int trial_time )
-        : DT(dt),
-          INV_DT(1 / dt),
-          trials(num_trials),
-          trial_duration(trial_time),
-          trial_steps((int) (trial_time / dt)),
-          network_size(nsize),
-          _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
-          _inhibition_strength(1, global_i, 1, 1, 1, 1, 2, network_size, tempNSS, window, eq_syn) {
+Synfire Synfire::CreateSynfire() {
+    return Synfire(SynfireParameters());
+}
+
+Synfire Synfire::CreateSynfire( int nsize ) {
+    struct SynfireParameters parms;
+    parms.network_size = nsize;
+    return Synfire(parms);
+}
+
+Synfire Synfire::CreateSynfire( int nsize, double dt, int num_trials, int trial_time ) {
+    struct SynfireParameters parms;
+    parms.network_size = nsize;
+    parms.timestep = dt;
+    parms.trials = num_trials;
+    parms.trial_duration = trial_time;
+    return Synfire(parms);
+}
+
+Synfire::Synfire( SynfireParameters params )
+        : DT(params.timestep),
+          INV_DT(1 / DT),
+          trials(params.timestep),
+          trial_duration(params.trial_duration),
+          trial_steps((int) (trial_duration * INV_DT)),
+          network_size(params.network_size),
+          _connectivity(params.frac,
+                        0.0,
+                        params.act,
+                        params.sup,
+                        params.cap,
+                        params.syndec,
+                        params.conn_type,
+                        network_size,
+                        params.tempNSS,
+                        params.window,
+                        params.eq_syn),
+          _inhibition_strength(1,
+                               params.global_i,
+                               1, 1, 1, 1, 2,
+                               network_size,
+                               params.tempNSS,
+                               params.window,
+                               params.eq_syn) {
+    _params = params;
     Initialize();
 }
 
 void Synfire::Initialize() {
     //~ Ensure parameter sanity.
-    _elapsed = 0.0;
+    _elapsedTime = 0.0;
+    _spikeCounter = 0;
 
     // L1089: Seed random number generator & check RAND_MAX
     seed = -1 * time(NULL);
 
     //==========================================
+    //~ Statistics & Logging.
+    stats_on = true;
+    stats_av = 0;
+
+    //==========================================
     //~ Initialize dependencies.
-    NSS = network_size;
     group_rank = new int[network_size];
 
-    if (man_tt == false) {
-        train_times = new double[2];
-        train_times[0] = 0.0;
-        train_times[1] = trial_duration + 1000;
+    if (_params.man_tt == false) {
+        _train_times = new double[2];
+        _train_times[0] = 0.0;
+        _train_times[1] = trial_duration + 1000;
     }
 
     //==========================================
     //~ Initialize loaded dependencies
-    group_s = network_size / ntrg;  // L1086
+    group_s = network_size / _params.ntrg;  // L1086
 
     // Training labels.
-    train_lab = new int[ntrain * ntrg];
-    for (int j = 0, tc = 0; j < ntrg; ++j) {
-        for (int i = 0; i < ntrain; ++i, ++tc) {
-            train_lab[tc] = j * group_s + i;
+    _train_lab = new int[_params.ntrain * _params.ntrg];
+    for (int j = 0, tc = 0; j < _params.ntrg; ++j) {
+        for (int i = 0; i < _params.ntrain; ++i, ++tc) {
+            _train_lab[tc] = j * group_s + i;
         }
     }
 
     // Inhibition delay
-    dsteps = (int) (1 + INV_DT * inh_d);
+    dsteps = (int) (1 + INV_DT * _params.inh_d);
     inh = new int[dsteps];
     for (int i = 0; i < dsteps; ++i) inh[i] = 0;
 
     //==========================================
     //~ Initialize Synapses.
-    _connectivity = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
-    _inhibition_strength = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
+//    _connectivity = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
+//    _inhibition_strength = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
 
     //==========================================
-    //~ Initialize Neurons.
+    //~ Initialize Neurons & their helpers
     _network = new Neuron[network_size];
     for (int i = 0; i < network_size; ++i) {
-        _network[i] = Neuron(i, exfreq, infreq, examp, inamp, global_i);
+        _network[i] = Neuron(i, _params.exfreq, _params.infreq, _params.examp, _params.inamp, _params.global_i);
     }
+
+    _whospiked.reserve((unsigned long) (network_size / 2));
+    _spikeHistory.resize((unsigned long) (network_size), row_t());
 }
 
 void Synfire::Run() {
@@ -122,8 +159,8 @@ void Synfire::Run() {
 
     // From L1230:
     double tTa[10], tTSa[trial_steps], tSDa[10];
-    double tT[3], tTS[3], tMPL[3], tSL[3], tSD[3];
-    tMPL[2] = 0, tSL[2] = 0, tTS[2] = 0, tSD[2] = 0;
+    double tT[3], tTS[3], tMPL[3], tSL[3], tSynDecay[3];
+    tMPL[2] = 0, tSL[2] = 0, tTS[2] = 0, tSynDecay[2] = 0;
 
     // L1234: for (int a=0; a<=10/*trials*/; a++){//****Trial Loop****//
     for (int a = 0; a <= 10; a++) {
@@ -135,24 +172,28 @@ void Synfire::Run() {
         // L1396: Reset Trial
         tSL[2] = 0;
         tMPL[2] = 0;
-        t = 0.0;
-        seed = time(NULL) * (-1);
+        _elapsedTime = 0.0;
+
+        seed = -1 * time(NULL);
         ran1(&seed);
 
-        tSD[0] = microtime();
-        if (plasticity) {
-            // L1408: Synapses decay after each trial.
+        tSynDecay[0] = microtime();
+        if (_params.plasticity) { // L1408: Synapses decay after each trial.
             _connectivity.SynapticDecay();
         }
+        tSynDecay[1] = microtime();
 
-        tSD[1] = microtime();
-        tSDa[a] = (tSD[1] - tSD[0]);
+        tSDa[a] = (tSynDecay[2] = (tSynDecay[1] - tSynDecay[0]));
         stop = microtime();
 
         if (stats_on) {
-            std::cout << "Trial " << a << " took " << (stop - start) << " ms." << std::endl;
-            sc = 0;
-            av = 0;
+            stats_av = 0.0;
+            for (int i = 0; i < network_size; ++i) stats_av += _network[i].Volts();
+            stats_av /= network_size;
+
+            // FORMAT: <trial> <spike total> <av. volt> <runtime> <# of active connections>
+            std::cout << "Trial " << a << std::endl;
+            std::cout << "\tDuration: " << (stop - start) << " ms." << std::endl;
         }
 
         // Reset neuron values for next trial
@@ -161,134 +202,155 @@ void Synfire::Run() {
             _network[i].ResetSpike();
         }
 
+        _spikeCounter = 0;
+
+        // Update timing data.
         tT[1] = microtime();
         tT[2] = (tT[1] - tT[0]);
         tTa[a] = tT[2];
     }
 }
 
-void Synfire::RunTrialRobust( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa ) {
+/**
+ * Runs a single SynfireGrowth trial.
+ * TODO: Figure out and rename tT, tTS, tMPL, tSL, tTSa.
+ *
+ * @param tT   idk?
+ * @param tTS  idk?
+ * @param tMPL The timings for Membrane Potential Layer, e.g. [start, end, delta]. (?)
+ * @param tSL  The timings for the Spike loop, e.g. [start, end, delta]. (?)
+ * @param tTSa [description]
+ */
+double Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkLp, double *tTSa ) {
     // ref: L1235.
     tT[0] = microtime();
     tTS[0] = microtime();
 
     int train_time_counter = 0;
     int train_group_lab = 0;
-    _elapsed = 0.0;
-
-    for(int i = 0; i < trial_steps; ++i) {
-
-    }
-}
-
-// TODO: Rename tT, tTS, tMPL, tSL, tTSa
-void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa ) {
-    // ref: L1235.
-    tT[0] = microtime();
-    tTS[0] = microtime();
-
-    int train_time_counter = 0;
-    int train_group_lab = 0;
-    _elapsed = 0.0;
+    _elapsedTime = 0.0;
+    _spikeCounter = 0;
 
     // L1268: for (int i=0; i<trial_steps; i++) {//****Timestep Loop****//
-    for (int i = 0; i < trial_steps; i++) {
+    for (int i = 0; i < trial_steps; ++i) {
+        //---------------------------------
         // L1271: Training loop
-        if (t >= train_times[train_time_counter]) {
-            int tstart = ntrain * train_group_lab;
-            int tstop = ntrain * (train_group_lab + 1);
+        if (_elapsedTime >= _train_times[train_time_counter]) {
+            int tstart = _params.ntrain * train_group_lab;
+            int tstop = _params.ntrain * (train_group_lab + 1); // TODO: isnt this just tstart + ntrain?
+            double tfreq_thresh = _train_freq * DT;
 
             for (int j = tstart; j < tstop; ++j) {
-                if (ran1(&seed) < training_f * DT) {
-                    _network[train_lab[j]].ExciteInhibit(training_amp, 'e');
-                    //cout<<"excited "<<train_lab[j]<<" at "<<t<<endl;
+                if (ran1(&seed) < tfreq_thresh) {
+                    _network[_train_lab[j]].ExciteInhibit(_train_amp, 'e');
+                    //std::cout << "excited " << train_lab[j] << " at " << t << std::endl;
                 }
-            }
 
-            // L1279: IDK yet.
-            if (t >= (train_times[train_time_counter] + training_t)) {
-                //cout<<train_group_lab<<" "<<t<<endl;
-                train_time_counter++;
-                train_group_lab = 1; // rand() % ntrg
+                // L1279: IDK yet.
+                if (_elapsedTime >= (_train_times[train_time_counter] + _train_dur)) {
+                    //std::cout << train_group_lab << " " << t << std::endl;
+                    train_time_counter++;
+                    train_group_lab = 1; // rand() % ntrg
+                }
             }
         }
 
+        //---------------------------------
         // L1286: Omitted Track voltages and conductances
         tMPL[0] = microtime();
 
+        //---------------------------------
+        // Enter Membrane Potential Layer loop.
         // L1295: Update membrane potentials first, keep track of who spikes
         for (int j = 0; j < network_size; ++j) {
-            //if neuron j spikes this timestep, store label
             if (_network[j].Update(DT)) {
                 _whospiked.push_back(j);
             }
         }
 
-        whocount = _whospiked.size();
-
         // L1333: Update tMPL
         tMPL[1] = microtime();
         tMPL[2] += (tMPL[1] - tMPL[0]);
-        // cout << "MPL current: " << tMPL[1]-tMPL[0] << "MPL Total: " << tMPL[2];
+        // std::cout << "MPL current: " << tMPL[1]-tMPL[0] << "MPL Total: " << tMPL[2] << std::endl;
 
-        tSL[0] = microtime();
-        for (int j = 0; j < v_whospike.size(); ++j) { // Spike Loop
-            int spiker = whospike[j];
-            int *send_to;//pointer to array containing post neurons
-            int send_count;//number of post neurons receiving spike
-//            cout<<v_whospike[j]<<" spikes!!! at "<<t<<endl;
-//            _network[v_whospike[j]].recspike(t); //record time of spike
-            sc++; //keep track of total number of spikes this trial
+        //---------------------------------
+        // Enter Spike Loop
+        tSpkLp[0] = microtime();
+        DoSpikeLoop();
+        tSpkLp[1] = microtime();
+        tSpkLp[2] += (tSpkLp[1] - tSpkLp[0]);
 
-            // TODO: L1348: Emit spikes
-            //check to see if spiking neuron is saturated
-            if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
-                int j_nss = _connectivity.GetNSS(spiker);
-                for (int k = 0; k < j_nss; ++k) {
-                    // Send spikes along super synapses
-                    _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
-                }
-            } else {
-                //spiking neuron isn't saturated, send spikes along active connections
-                send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
-                for (int k = 0; k < send_count; k++) {
-                    _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
-                }
-            }
 
-            if (plasticity) {
-                _connectivity.Synaptic_Plasticity(spiker, t, &_network);
-            }
-        }
-
-        tSL[1] = microtime();
-        tSL[2] += (tSL[1] - tSL[0]);
-        // cout << "SL current: " << tSL[1]-tSL[0] << " SL total:" << tSL[2] << endl;
-
-        // L1372: Inhibition.
-        inh[dsteps - 1] = whocount;
-        for (int z = 0; z < whocount; ++z) {
-            int spiker = whospike[z];
+        //---------------------------------
+        // Inhibition
+        inh[dsteps - 1] = _whospiked.size();
+        for (std::vector<int>::iterator itr = _whospiked.begin(); itr != _whospiked.end(); ++itr) {
             for (int j = 0; j < network_size; ++j) {
-                _network[j].ExciteInhibit(_inhibition_strength.GetSynapticStrength(spiker, j), 'i');
+                _network[j].ExciteInhibit(_inhibition_strength.GetSynapticStrength((*itr), j), 'i');
             }
-//            cout<<t<<" "<<inh[0]*global_i<<endl;
         }
 
-        for (int y = 0; y < dsteps - 1; ++y) {
-            inh[y] = inh[y + 1];
+        for (int j = 0; j < dsteps - 1; ++j) {
+            inh[j] = inh[j + 1];
         }
 
-        // L1388: Resets the stored spikes.
-        if (whocount != 0) {
-            v_whospike.clear();
-            delete[] whospike; //reset whocount and destroy whospike at end of timestep
-            whocount = 0;
-        }
+        // L1388: Reset spikes for this timestep.
+        _whospiked.clear();
 
-        t += DT; // increment timer.
-        tTS[1] = microtime();
+        // Prepare timing for next timestep.
+        _elapsedTime += DT;
         tTS[1] = microtime();
         tTSa[i] = (tTS[1] - tTS[0]);
-    } // end timestep loop.
+    }
+
+    return _elapsedTime;
+}
+
+void Synfire::DoSpikeLoop() {
+    int spiker;
+    row_t spk_hist; // Neuron's spike history data.
+    bool *send_to;  // pointer to array containing post neurons.
+    int send_count; // number of post neurons receiving spike.
+
+    for (std::vector<int>::iterator itr = _whospiked.begin(); itr != _whospiked.end(); ++itr) {
+        spiker = (*itr);
+        spk_hist = _spikeHistory[spiker];
+
+        // Log the spike event.
+        spk_hist.push_back(_elapsedTime);
+        ++_spikeCounter;
+//        std::cout << spiker <<" spikes!!! at " << _elapsedTime << std::endl;
+
+        // L1348: Emit spikes
+        // Check to see if spiking neuron is saturated
+        if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
+            int j_nss = _connectivity.GetNSS(spiker);
+
+            // TODO: can't just loop over send_to anymore.
+            for (int k = 0; k < j_nss; ++k) { // Send spikes along super synapses
+                _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+            }
+        } else { // Spiking neuron isn't saturated, send spikes along active connections
+            send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
+
+            // TODO: can't just loop over send_to anymore.
+            for (int k = 0; k < send_count; k++) {
+                _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+            }
+        }
+
+        if (_params.plasticity) {
+            _connectivity.Synaptic_Plasticity(spiker, _elapsedTime, &spk_hist[0], spk_hist.size());
+        }
+    }
+}
+
+double Synfire::GetAverageVoltage() {
+    double avg = 0.0;
+
+    for (int i = 0; i < network_size; ++i) {
+        avg += _network[i].Volts();
+    }
+
+    return (avg / network_size);
 }
