@@ -1,5 +1,5 @@
 #include "neuron.h"
-#include "random.h"
+#include "../common/random.h"
 
 // Helpers
 int Neuron::_LABEL_COUNTER = 0;

@@ -1,7 +1,7 @@
 #ifndef PORT_SYNAPSE_H
 #define PORT_SYNAPSE_H
 
-#include "helpers.h"
+#include "../common/helpers.h"
 
 #ifdef __CUDACC__
 #define CUDA_CALLABLE __host__ __device__
