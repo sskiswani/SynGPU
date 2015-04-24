@@ -1,56 +1,69 @@
-MK_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
- CWD := $(notdir $(patsubst %/,%,$(dir $(MK_PATH))))
-
-# Path Constants
-SOURCES := ./src/
-
-EXECUTABLE := synfireGrowth
-
-CXX := g++44
-CXXFLAGS := -std=c++0x
+# CXX := g++44
+# CXX := g++
+# CXXFLAGS := -std=c++0x
 # CXXFLAGS := -W -Wall -Wimplicit -Wswitch -Wformat -Wchar-subscripts -Wparentheses -Wmultichar -Wtrigraphs -Wpointer-arith -Wcast-align -Wreturn-type -Wno-unused-function -fno-strict-aliasing
-CXXINCLUDES := -I./src/port/ -I./src/common/ -I./src/gpu/ -I./src/synfire/
+# CXXINCLUDES := -I./src/port/ -I./src/common/ -I./src/gpu/ -I./src/synfire/
 
-NVCC := /usr/local/cuda/bin/nvcc
-NVCCFLAGS := -O3 -arch sm_30
-NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
-NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
+# NVCC := /usr/local/cuda/bin/nvcc
+# NVCCFLAGS := -O3 -arch sm_30
+# NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
+# NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
 
-SRC_PATH := src/
-GPU_PATH := src/gpu/
-SYN_PATH := src/synfire/
-CMN_PATH := src/common/
+##################################################################
+### PROJECT SETTINGS
+# The name of the executable to be created
+BIN_NAME := synfire
 
-default: $(EXECUTABLE)
+# Extension of source files used in the project
+SRC_EXT = cpp
 
-# GPU MAKE TARGETS
-syn_gpu: $(GPU_PATH)cudaMain.cu microtime.o CUSynfire.o neuron.o synapses.o microtime.o random.o
-	$(NVCC) $(NVCCINCLUDES) $(CXXINCLUDES) $(NVCCFLAGS) $^ -o $@
+# Path to the source directory, relative to the makefile
+SRC_PATH = .
 
-CUSynfire.o: $(CMN_PATH)microtime.h $(GPU_PATH)CUSynfire.h $(GPU_PATH)CUSynfire.cpp
-	$(NVCC) $(CXXINCLUDES) $(CXXINCLUDES) -c $(GPU_PATH)CUSynfire.cpp
+# Destination directory, like a jail or mounted system
+DESTDIR = .
 
-# CPU MAKE TARGETS
-synfireGrowth: $(SRC_PATH)main.cpp synfire.o microtime.o synfire.o neuron.o synapses.o microtime.o random.o
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) $^ -o $@
+# General compiler flags
+# COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g
+CXXFLAGS = -std=c++0x
 
-synfire.o: $(CMN_PATH)microtime.h $(SYN_PATH)synfire.h $(SYN_PATH)synfire.cpp
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(SYN_PATH)synfire.cpp
+# Find all source files in the source directory, sorted by most
+# recently modified
+CPP_SOURCES := $(shell find . -path ./src/gpu -prune -o -name '*.cpp' -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 
-microtime.o: $(CMN_PATH)microtime.h $(CMN_PATH)microtime.cpp
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(CMN_PATH)microtime.cpp
+# Add additional include paths
+INCLUDES := $(shell find -name '*.h' -printf '-I%h\n' | sort -u)
 
-synapses.o: $(SYN_PATH)synapses.h $(SYN_PATH)synapses.cpp
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c  $(SYN_PATH)synapses.cpp
+# Set the object file names, with the source directory stripped
+# from the path, and the build path prepended in its place
+OBJECTS = $(CPP_SOURCES:$(SRC_PATH)/%.$(SRC_EXT)=%.o)
 
-neuron.o: $(SYN_PATH)neuron.h $(SYN_PATH)neuron.cpp
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(SYN_PATH)neuron.cpp
+# Set the dependency files that will be used to add header dependencies
+DEPS = $(OBJECTS:.o=.d)
 
-random.o: $(CMN_PATH)random.h $(CMN_PATH)random.cpp
-	$(CXX) $(CXXFLAGS) $(CXXINCLUDES) -c $(CMN_PATH)random.cpp
+#### HELPERS
+# Function used to check variables. Use on the command line:
+# make print-VARNAME
+# Useful for debugging and adding features
+print-%: ; @echo $*=$($*)
 
+#### COMPILATION RULES
+$(BIN_NAME): $(OBJECTS)
+	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
+
+# Add dependency files, if they exist
+-include $(DEPS)
+
+%.o: $(SRC_PATH)/%.$(SRC_EXT)
+	$(CXX) $(CXXFLAGS) $(INCLUDES) -MP -MMD -c $< -o $@
+
+# Removes all build files
+.PHONY: clean
 clean:
 	rm -rf *.o *~
 
 realclean:
-	rm -rf *.o *~ $(EXECUTABLE)
+	rm -rf *.o *~ $(BIN_NAME)
+	# TEMP solution to cleaning up object files.
+	find . -type f -name '*.o' -exec rm {} +
+	find . -type f -name '*.d' -exec rm {} +

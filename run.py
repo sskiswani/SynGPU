@@ -1,5 +1,6 @@
 import argparse
 import paramiko
+import os
 
 
 class SSHTool():
@@ -56,4 +57,6 @@ if __name__ == "__main__":
     else:
         ssht = SSHTool((args.host, 22), args.username, args.password,
                        via=(args.via, 22), via_user=args.username, via_auth=args.password)
+
         # print ssht.run('uname -a')
+        sftp = paramiko.SFTPClient.from_transport(ssht.transport)

@@ -1,0 +1,132 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{relsize}
+\usepackage{MnSymbol}
+
+%%%
+\usepackage[colorinlistoftodos]{todonotes}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{GPU Accelerated Neural Networks With Dynamic Topology}
+\author{Travis Chung\\ \emph{Project Leader}
+    \and Shashank Golla\\ \emph{Code Architecture}
+    \and Suhib Sam Kiswani\\\emph{Simulation Details}
+}
+\date{April 24, 2015}
+
+\begin{document}
+\listoftodos % TODO: REMOVE ME
+\todo{Remove the todo list and all todos.}
+
+\maketitle
+
+\begin{abstract}
+Neural Networks lend themselves naturally to being parallelized, although certain caveats exist. Furthermore, there exists little work on the benefits of parallelizing networks having a dynamic topology. We demonstrate a parallel implemention of the the Synfire-Growth simulation (developed by Jun and Jin \cite{synfire}) that runs on the GPU. Despite the dynamic topology of the neural network, our results show that porting the work of \cite{synfire} to the GPU provided useful runtime performance benefits.\todo{double check this, fill in some actual data as results come in. add a *tiny* bit more.}
+\end{abstract}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+The human brain is one of the most complicated and interesting biological systems in nature. Despite our poor understanding of the brain's complex structure, it is common to describe it as a biological computer, consisting of an dense and tangled network of neurons, which serve as pathways for electrical current. This analogy provides a useful starting point for computational models, and is often employed in the machine learning domain.
+
+Neural Networks (or NN's) can be understood most simply as a complete weighted graph, with vertices representing neurons, and weighted edges representing the strength of a neural connection. This model can be enhanced by allowing the weights to change in response to external simuli, representing a dynamic topology of connected neurons.
+
+
+This paper describes the simulation of neural networks with dynamic topology on the GPU using the model developed by \cite{synfire} in 2007. We describe how the implementation of \cite{synfire} was refactored to run on the GPU and take advantage of parallelization. Our work concludes with a cost-benefit analysis of running this simulation on the GPU, and how neural networks naturally lend themselves to the parallel environment.\todo{elaborate and make sure its 100\% obvious our implementation is just a refactoring of \cite{synfire}}
+
+\section{Background}
+Primarily, the study the neuroscience is concerned with the behavior of the brain, the way it is structured, the way it learns, how it develops, how it adapts, and changes with respect to stimuli. While understanding of the central nervous system continues to grow, there is so much that is unknown about the brain: the storage and accessing of memories, how the brain retains information, the idea of consciousness, and how sensory input is translated into smell, taste, or pain. The modeling and simulating of brain activity is vital in observing the behavior of the brain and building intuition.
+
+There are generally two families of algorithms for the simulation of neural networks, described in detail by \cite{spike}. The two families are synchronous (“clock-driven”) or asynchronous (“event-driven”) algorithms. In synchronous algorithms neurons are updated only when they receive or emit a spike, whereas “clock-driven” algorithms update all neurons simultaneously at every tick of a clock. There are plenty of simulations using synchronous algorithms, because the spike times are a defined time grid. To get exact simulations of neuron spiking, asynchronous algorithms are recommended. Asynchronous algorithms have been developed for simpler models, but for very large networks, the simulation time and number of spikes becomes problematic for computation.
+\todo{proposal material. clean up, rephrase statements, and trim the fat.}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Previous Work}
+\todo{requires a clean-up and a couple of revisions to fit the tone of the paper. Include a paragraph on the synfire paper.}%
+%%%% NOTES FROM PROPOSAL (rephrase and fit into something acceptable)
+% Analysis of neural spikes on the GPU, as detailed by \cite{accel}, is primarily achieved through two general models: the Hodgkin-Huxley (HH) and Izhikevich models. These models can be used to implement and analyze character recognition networks which are based on the aforementioned models. The results of \cite{accel} imply that the Izhikevich model has fewer computations than the HH model (13 flops as opposed to 246 flops per neuron update).
+% There is evidence in \cite{accel} that parallel implementations of the models have achieved speedups greater than 110 times on the GPU compared to the 2.66GHz Intel Core 2 Quad. The paper goes into background/history of Spiking Neural Models within the last 50 years.
+% It then goes into the specifics of each of the simulations, which helps us in how we might go about doing our own simulations. Overall this is a great paper to give us a good understanding on where GPU computing stands within neural spikes.
+%%%%
+
+Despite the group's lack of domain knowledge regarding neural networks, the work of \cite{accel} provided the initial foundation and direction for our work. The comparisons of the Hodgkin-Huxel (HH) and Izhikevich models of neural networks provided by \cite{accel} was a significant aide in deciding which model to use for our simulation. In addition to their analysis, \cite{accel} provides evidence for parallel implementations on the GPU that achieve speedups of greater than 110 times their corresponding CPU implementations. Though we could not reproduce a speedup of their magnitude, it gave our work its initial direction. \todo{be more specific about how \cite{accel} served as a foundation for the project. as it stands it seems out of place and kinda useless. also phrasing is awkward.}
+
+The model we chose to implement on the GPU was one developed and detailed by \cite{synfire}, suggested by an informal advisor for this project.\todo{expand on model of \cite{synfire}. give reasons why it was chosen}
+
+In addition to developing the simulation model, it was also implemented by \cite{synfire}. By using their implementation as our foundation, we were able to run a faithful representation of their work on the GPU which provides a convenient metric for the efficacy of our work.\todo{clean up. elaborate on implementation maybe?}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Implementation Details}
+
+{\color{red} synfire refactoring description: improvements, complications etc. short and sweet}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{On the CPU}
+
+{\color{red} depending on time, mention how we tried to help the CPU being competitive in our analysis}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{On the GPU}
+
+{\huge \color{red} ---MOST IMPORTANT PART HERE---}
+
+{\color{red} describe some potential + actual optimizations by name; choose 2/3 and go into explicit detail in the subsubsects.}
+
+{\color{red} reasons for choosing aforementioned optimizations goes here}
+
+\subsubsection{Optimization 1}
+
+{\color{red} describe one method of the GPU implementation, and include some of the timings. maybe compare it to CPU? dont say its the best here though}
+
+\subsubsection{Optimization 2}
+
+{\color{red} describe one method of the GPU implementation, and include some of the timings. maybe compare it to CPU? dont say its the best here though}
+
+\subsubsection{Optimization 3}
+
+{\color{red} might be able to get away with only 2 but this serves as a reminder to shoot for the stars}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Results}
+{\huge \color{red} IMPORTANT!!}
+
+{\color{red} talk about the pros/cons of certain methods and do the major pro/con chart between methods.}
+
+{\color{red} be specific about the differences in implementation details. how optimizations can be combined or something to fill up the space}
+
+{\color{red} a conclusory sentence that sums up the report}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{thebibliography}{9}
+\bibitem{synfire}
+Jun, Joseph K and Jin, Dezhe Z,
+\emph{Development of neural circuitry for precise temporal sequences through spontaneous activity, axon remodeling, and synaptic plasticity}.
+PLoS ONE (2007) 2(8): e723. doi: 10.1371/journal.pone.0000723
+
+\bibitem{spike}
+Brette R, Rudolph M, Carnevale T, et al.
+\emph{Simulation of networks of spiking neurons: A review of tools and strategies. Journal of computational neuroscience.}
+2007;23(3):349-398. doi:10.1007/s10827-007-0038-6.
+
+\bibitem{accel}
+Fidjeland, A.K.,  Shanahan, M.P.
+\emph{Accelerated simulation of spiking neural networks using GPUs.}
+The 2010 International Joint Conference on Neural Networks (IJCNN). (2010)
+\end{thebibliography}
+
+\end{document}

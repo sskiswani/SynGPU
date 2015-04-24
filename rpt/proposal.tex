@@ -1,0 +1,93 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{relsize}
+\usepackage{MnSymbol}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\begin{center}
+{\huge\bf Simulating Neural Networks}\\
+\smallskip
+{\huge\bf With Dynamic Topology}
+\smallskip
+
+{\large Travis Chung}\\
+\smallskip
+{\large Shashank Golla }\\
+\smallskip
+{\large Suhib Sam Kiswani}\\
+
+\bigskip
+
+For our project, we will apply the application of parallel programming to the field of neuroscience - simulating neural networks with topology changing over time.
+\end{center}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Introduction}
+
+The field of neuroscience revolves around one of the most complicated biological systems we know of, the brain. Primarily, the study the neuroscience is concerned with the behavior of the brain, the way it is structured, the way it learns, how it develops, how it adapts, and changes with respect to stimuli.
+
+While understanding of the central nervous system continues to grow, there is so much that is unknown about the brain: the storage and accessing of memories, how the brain retains information, the idea of consciousness, and how sensory input is translated into smell, taste, or pain.  Furthermore, the modeling and simulating of brain activity is vital in observing the behavior of the brain and building intuition.
+
+\section{Brains and the GPU}
+
+When the brain experiences any sort of activity - whether it be a memory that is triggered by some sensory input or analysis of a situation - millions of neurons are simultaneously interacting and communicating with one another. Each neuron is stimulated and exhibits an excitatory state where the soma of a neuron produces an electrochemical pulse (known as the action potential) which is propagated down its axon to its neighboring neurons. This results in a cascading effect where the action potential of one neuron sets of chain reactions in neighboring neurons recursively.
+
+When one simply considers the metaphor of a neuron being a single thread, it becomes quite natural to think of the brain as a  highly parallel processing machine. As such, there would naturally be potential in the utilization of parallel programming to simulate and model the mechanisms of the brain. There is quite a bit of literature that supports this belief. The simulation of neuronal spiking is a vital aspect of neuroscience studies that helps further understanding regarding how neurons network and communicate with one another.
+
+There are generally two families of algorithms for the simulation of neural networks, described in detail by \cite{spike}. The two families are synchronous (“clock-driven”) or asynchronous (“event-driven”) algorithms. In synchronous algorithms neurons are updated only when they receive or emit a spike, whereas “clock-driven” algorithms update all neurons simultaneously at every tick of a clock. There are plenty of simulations using synchronous algorithms, because the spike times are a defined time grid. To get exact simulations of neuron spiking, asynchronous algorithms are recommended. Asynchronous algorithms have been developed for simpler models, but for very large networks, the simulation time and number of spikes becomes problematic for computation.
+
+\section{Previous Work}
+
+Analysis of neural spikes on the GPU, as detailed by \cite{accel}, is primarily achieved through two general models: the Hodgkin-Huxley (HH) and Izhikevich models. These models can be used to implement and analyze character recognition networks which are based on the aforementioned models. The results of \cite{accel} imply that the Izhikevich model has fewer computations than the HH model (13 flops as opposed to 246 flops per neuron update).
+
+The paper compares performance improvements of doing these simulations on some of the recent multi-core processors including GPUs, IBMs Cell Broadband Engine, AMD Opeteron, and Intel Xeon compared to a 2.66GHz Intel Core 2 Quad.
+
+
+There is evidence in \cite{accel} that parallel implementations of the models have achieved speedups greater than 110 times on the GPU compared to the 2.66GHz Intel Core 2 Quad. The paper goes into background/history of Spiking Neural Models within the last 50 years.
+ It then goes into the specifics of each of the simulations, which helps us in how we might go about doing our own simulations. Overall this is a great paper to give us a good understanding on where GPU computing stands within neural spikes.
+
+
+We will certainly have to modify the implementation of the existing model to make them suitable for us on the GPU.  We will also take the next step in taking into consideration the limits/hardware of the GPU to optimize the code.
+
+\section{Proposal}
+
+For our project we plan to utilize GPUs to model and expedite the simulation of neuronal spiking using the Spiking Neuron Model created by Eugene Izhikevich. The use of Izhikevich models is only natural given the fact that they are quite faster than those of the Hodgkin-Huxel models.
+
+Personalized improvements to the Izhikevich model are only intermediate goals, however, as the focus of our project will be on the simulation of neural networks with topology changing over time. This is currently an unsolved problem in the field and was a topic suggested by Dr. Gordon Erlebacher, of Florida State University's Scientific Computing Department. The hope is that an interdepartmental effort will yield results that are useful to both we, the programmers, and the researchers we will be working with.
+
+There is incredible value to interdisciplinary efforts, such as the spreading and mixing of ideas and knowledge. It is also an opportunity for one of our group members to test the waters of a potential field of study. Most importantly, however, is that the results of labors will not go to waste at the conclusion of the course but continue to endure as something that will be helpful to the researchers we are working for - as such, this provides the maximum utilization of our time spent working on this project. All of this, without mentioning the fact that the participating members of the group will become well versed in the field of neuroscience.
+
+\section{Division of Labor}
+
+This project is the brainchild of group member Travis Chung who, as such, will be coordinating the research efforts and working most closely with our informal advisor on the topic, Dr. Gordon Erlebacher. This consists of surveying the field and problem space and act as a teacher of sorts, helping the other group members to better understand the subject matter.
+
+As resident mathematician, Suhib Kiswani will be working on the maths behind the simulations and coordinating the development of the topology models that will be used. This amounts to investigating numerical methods and approximations of the functions we will be using and translating them into code.
+
+Shashank Golla will be heading up the architecture part of the project. In addition to his somewhat managerial role in discussing the specifics of code architecture and coordinating implementation, Shashank will be responsible for determining areas that can be optimized in roder to speed up the runtime execution of the code.
+
+In essence, each of the group members will act as the resident expert in their area of the project, conveying information and acting as a teacher for the role they are responsible. To reiterate, Travis will be the neuroscience expert, Suhib will be the modelling expert, and Shashank will be the architecture expert. Given the fact that this is a project for a class on GPU Programming, all group members will be responsible for contributing to the codebase and writing usuable GPU code that runs as optimally as possible.
+
+The interdisciplinary nature of this project, as well as the fact that the participants are not well-versed in neuroscience, requires attending weekly meetings with our liason in the Scientific Computing department.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{thebibliography}{9}
+
+\bibitem{spike}Brette R, Rudolph M, Carnevale T, et al. Simulation of networks of spiking neurons: A review of tools and strategies. Journal of computational neuroscience. 2007;23(3):349-398. doi:10.1007/s10827-007-0038-6.
+
+\bibitem{accel} Fidjeland, A.K.,  Shanahan, M.P.
+Accelerated simulation of spiking neural networks using GPUs. Neural Networks (IJCNN), The 2010 International Joint Conference on. (2010)
+
+
+\end{thebibliography}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\end{document}

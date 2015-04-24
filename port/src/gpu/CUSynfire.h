@@ -1,7 +1,14 @@
 #ifndef PORT_CUSYNFIRE_H
 #define PORT_CUSYNFIRE_H
 
+#ifdef __CUDACC__
+#define CUDA_CALLABLE __host__ __device__
+#else
+#define CUDA_CALLABLE
+#endif
+
 #include <fstream>
+#include "synapses.h"
 
 class Neuron;
 
@@ -73,8 +80,9 @@ class CUSynfire {
     void Initialize();
 
     const int network_size;
-    Neuron *_network;
-    Neuron *_dnetwork;
+    Neuron *_network, *_dnetwork;
+    Synapses _connectivity, *_dconnectivity;
+    Synapses _inhibition_strength, *_dinh_str;
 };
 
 

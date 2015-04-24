@@ -5,6 +5,46 @@
 #include "synfire.h"
 #include "neuron.h"
 
+
+//"""""""""""""""""""""""""""""""""""""""""""""""""
+// TODO: Pending attributes from the top of synfireGrowth.cpp.
+int runid = 1;  //identifies the particular run
+bool LOAD = false; //1 means load data
+bool ILOAD = false;
+
+//Tracking variables during trial
+std::ofstream track_volt; //stream that tracks volt and conds during trial
+int volt_post, volt_pre = 0; //contains the label of the neuron whose voltage is being tracked, it postsynaptic to volt_pre
+
+double t = 0.0; //current time in ms
+int *whospike, whocount = 0;  //tracks labels of neurons that spike during current step, length of whospike[]
+int *group_rank; //contains group ranking of each neuron after chain network forms
+
+//Spontaneous activity defaults
+double exfreq = 40, infreq = 200, examp = 1.3, inamp = .1, global_i = .3, inh_d = 0, leak = -85.0;
+
+//Synapses defaults
+int NSS, tempNSS = 10; //max # of supersynapses allowed
+double act = .2, sup = .4, cap = .6, frac = .1, isynmax = .3, eq_syn = .3;
+double syndec = .99999;
+int conn_type = 1;
+bool plasticity = true;
+double window = 200; //history time window size (ms)
+
+//Training defaults
+int ntrain = 10, ntrg = 1; //number of training neurons
+bool man_tt = false; //manual training time bool (false if training occurs at t=0)
+double *train_times;
+double training_f = 1.5; //training spike frequency (ms)^(-1)
+double training_amp = .7; //training spike strength
+double training_t = 8.0; //training duration in ms
+
+// Stats
+bool stats_on = true;
+int sc = 0; //total spike counter
+double av = 0;
+
+
 Synfire::Synfire( int nsize )
         : DT(0.1),
           INV_DT(1 / DT),
@@ -23,17 +63,18 @@ Synfire::Synfire( int nsize, double dt, int num_trials, int trial_time )
           trials(num_trials),
           trial_duration(trial_time),
           trial_steps((int) (trial_time / dt)),
+          network_size(nsize),
           _connectivity(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn),
           _inhibition_strength(1, global_i, 1, 1, 1, 1, 2, network_size, tempNSS, window, eq_syn) {
-    network_size = nsize;
-
     Initialize();
-
 }
 
 void Synfire::Initialize() {
+    //~ Ensure parameter sanity.
+    _elapsed = 0.0;
+
     // L1089: Seed random number generator & check RAND_MAX
-    seed = time(NULL) * (-1);
+    seed = -1 * time(NULL);
 
     //==========================================
     //~ Initialize dependencies.
@@ -74,7 +115,6 @@ void Synfire::Initialize() {
     for (int i = 0; i < network_size; ++i) {
         _network[i] = Neuron(i, exfreq, infreq, examp, inamp, global_i);
     }
-
 }
 
 void Synfire::Run() {
@@ -127,15 +167,29 @@ void Synfire::Run() {
     }
 }
 
-void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa ) {
-    std::vector<int> v_whospike;
-
+void Synfire::RunTrialRobust( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa ) {
     // ref: L1235.
     tT[0] = microtime();
+    tTS[0] = microtime();
+
     int train_time_counter = 0;
     int train_group_lab = 0;
+    _elapsed = 0.0;
 
+    for(int i = 0; i < trial_steps; ++i) {
+
+    }
+}
+
+// TODO: Rename tT, tTS, tMPL, tSL, tTSa
+void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, double *tTSa ) {
+    // ref: L1235.
+    tT[0] = microtime();
     tTS[0] = microtime();
+
+    int train_time_counter = 0;
+    int train_group_lab = 0;
+    _elapsed = 0.0;
 
     // L1268: for (int i=0; i<trial_steps; i++) {//****Timestep Loop****//
     for (int i = 0; i < trial_steps; i++) {
@@ -164,13 +218,13 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
 
         // L1295: Update membrane potentials first, keep track of who spikes
         for (int j = 0; j < network_size; ++j) {
-            //if neuron j spikes this timestep, increase the length of v_whospike, store label
+            //if neuron j spikes this timestep, store label
             if (_network[j].Update(DT)) {
-                v_whospike.push_back(j);
+                _whospiked.push_back(j);
             }
         }
 
-        whocount = v_whospike.size();
+        whocount = _whospiked.size();
 
         // L1333: Update tMPL
         tMPL[1] = microtime();
@@ -188,21 +242,21 @@ void Synfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSL, doub
 
             // TODO: L1348: Emit spikes
             //check to see if spiking neuron is saturated
-            if(_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
+            if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
                 int j_nss = _connectivity.GetNSS(spiker);
-                for(int k = 0; k < j_nss; ++k) {
+                for (int k = 0; k < j_nss; ++k) {
                     // Send spikes along super synapses
                     _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
                 }
             } else {
                 //spiking neuron isn't saturated, send spikes along active connections
                 send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
-                for(int k = 0; k < send_count; k++) {
+                for (int k = 0; k < send_count; k++) {
                     _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
                 }
             }
 
-            if(plasticity) {
+            if (plasticity) {
                 _connectivity.Synaptic_Plasticity(spiker, t, &_network);
             }
         }
