@@ -1,10 +1,19 @@
 #ifndef PORT_SYNFIRE_HELPERS_H
 #define PORT_SYNFIRE_HELPERS_H
 
+#include <stdlib.h>
+#include <iostream>
+#include <string>
+
 struct SynfireParameters {
     SynfireParameters();
+    SynfireParameters(int argc, char *argv[]);
+
+    void SetDefaults();
 
     int network_size;
+    bool stats_on;
+
 //    bool LOAD = false; //1 means load data
 //    bool ILOAD = false;
 

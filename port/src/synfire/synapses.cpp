@@ -4,14 +4,14 @@
 #include "random.h"
 
 // Synaptic Plasticity parameters
-const double Synapses::AMPLITUDE_LTP = .01;            // Long-term Plasticity amplitude
-const double Synapses::AMPLITUDE_LTD = .0105;        // Long-term Depression amplitude
+const double Synapses::AMPLITUDE_LTP = .01;     // Long-term Plasticity amplitude
+const double Synapses::AMPLITUDE_LTD = .0105;   // Long-term Depression amplitude
 
-const double Synapses::INV_DECAY_LTP = .05;            // Long-term Plasticity Inverse Decay times(ms)
-const double Synapses::INV_DECAY_LTD = .05;            // Long-term Depression Inverse Decay times(ms)
+const double Synapses::INV_DECAY_LTP = .05;     // Long-term Plasticity Inverse Decay times(ms)
+const double Synapses::INV_DECAY_LTD = .05;     // Long-term Depression Inverse Decay times(ms)
 
-const double Synapses::POTENTIATION_FUNT = 5.0;        // Potentiation
-const double Synapses::DEPRESSION_FUNT = 5.25;        // Depression
+const double Synapses::POTENTIATION_FUNT = 5.0; // Potentiation
+const double Synapses::DEPRESSION_FUNT = 5.25;  // Depression
 
 
 Synapses::Synapses( double fract_act,
@@ -271,8 +271,6 @@ int Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr ) {
 
 CUDA_CALLABLE
 int Synapses::CountSynapses( char syn_type ) {
-    LOG("Yo I'm here.")
-
     int *cn_type;
     if (syn_type == 'a') {
         cn_type = _actcount;
@@ -280,7 +278,6 @@ int Synapses::CountSynapses( char syn_type ) {
         cn_type = _supcount;
     }
 
-    LOG("Holla at the for loop.")
     int sum = 0;
     for (int i = 0; i < _size; ++i) {
         LOG("What's good %i", i)

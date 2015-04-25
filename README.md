@@ -10,6 +10,29 @@ Choose your flavor:
 
 Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 
+The following options exist:
+
+- `-A <int>` sets the numbers of trials before termination of the run (default is 200000)
+- `-B <int>` sets the number of training neurons (default is 10)
+- `-C <float>` sets the number of ms per trial (default is 2000)
+- `-c <double>` sets the decay rate of the synapses (default is .999996)
+- `-D <int>` sets the max number of supersynapses a neuron may have
+- `-d` outputs various statistics after each trial for diagnostic purposes (i.e. spk count, avg volt, etc)
+- `-f <double>` sets the fraction of synapses initially active (default is .1)
+- `-g <float>` Sets GLTP
+- `-i <double>` sets the amplitude of the global inhibition (default is .3)
+- `-j <float>` sets the inhibition delay
+- `-m <double>` sets the excitatory spontaneous frequency (default is 40Hz)
+- `-n <double>` sets the inhibitory spontaneous frequency (default is 200Hz)
+- `-o <double>` sets the amplitude of the spontaneous excitation (default is 1.3)
+- `-p <double>` sets the amplitude of the spontaneous inhibition (default is .1)
+- `-q <double>` sets the active syn threshold (default is .2)
+- `-r <double>` sets the super syn threshold (default is .4)
+- `-s <double>` sets the synapse maximum (default is .6)
+- `-u <double>` set maximum inhibitory synaptic strength
+- `-x <double>` sets spike rate of training excitation (default is 1500 Hz), input assumed to be in milliseconds.
+- `-y <double>` sets amplitude of training excitation (default is .7)
+- `-z <double>` sets the training excitation duration (default is 8 ms)
 
 #TODO
 

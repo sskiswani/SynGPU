@@ -2,13 +2,14 @@
 
 int main(int argc, char *argv[]) {
     std::cout << "Welcome to SynfireGrowth powered by NVIDIA - CUDA.\n" << std::endl;
+    SynfireParameters params(argc, argv);
 
     //~ Prepare device.
     cudaDeviceProp prop;
     int whichDevice;
     HANDLE_ERROR( cudaGetDevice( &whichDevice) );
     HANDLE_ERROR( cudaGetDeviceProperties( &prop, whichDevice) );
-    struct Timer timer;
+    Timer timer;
 
     // TODO: Command line arguments
 

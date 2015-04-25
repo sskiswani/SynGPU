@@ -74,7 +74,7 @@ void Synfire::Initialize() {
     group_s = network_size / _params.ntrg;  // L1086
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Initialize training data.
     if (_params.man_tt == false) {
         _train_times = new double[2];
@@ -91,14 +91,14 @@ void Synfire::Initialize() {
     }
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Inhibition delay
     dsteps = (int) (1 + INV_DT * _params.inh_d);
     inh = new int[dsteps];
     for (int i = 0; i < dsteps; ++i) inh[i] = 0;
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Initialize Neurons & their helpers
     _network = new Neuron[network_size];
     for (int i = 0; i < network_size; ++i) {

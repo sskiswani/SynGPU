@@ -35,6 +35,7 @@ CUSynfire::CUSynfire( SynfireParameters params )
           trials(params.timestep),
           trial_duration(params.trial_duration),
           trial_steps(trial_duration * INV_DT),
+          stats_on(params.stats_on),
           network_size(params.network_size),
           _connectivity(params.frac,
                         0.0,
@@ -78,14 +79,13 @@ void CUSynfire::Initialize() {
     //~ Ensure parameter sanity.
     _elapsedTime = 0.0;
     _spikeCounter = 0;
-    stats_on = true;
 
     // L1089: Seed random number generator & check RAND_MAX
     seed = -1 * time(NULL);
     group_s = network_size / _params.ntrg;  // L1086
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Initialize training data.
     if (_params.man_tt == false) {
         _train_times = new double[2];
@@ -102,14 +102,14 @@ void CUSynfire::Initialize() {
     }
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Inhibition delay
     dsteps = (int) (1 + INV_DT * _params.inh_d);
     inh = new int[dsteps];
     for (int i = 0; i < dsteps; ++i) inh[i] = 0;
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Initialize Neurons & their helpers
     _network = new Neuron[network_size];
     for (int i = 0; i < network_size; ++i) {
@@ -130,14 +130,14 @@ void CUSynfire::Initialize() {
     HANDLE_ERROR(cudaMalloc((void **) &_dranCache, sizeof(float) * network_size * 4));
 
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Initialize Synapses & their helpers
     _dconnectivity = CreateDeviceSynapses(&_connectivity);
     _dinh_str = CreateDeviceSynapses(&_inhibition_strength);
 }
 
 void CUSynfire::Run() {
-    double start, stop;
+    Timer trialTimer;
 
     // From L1230:
     double tTa[10], tTSa[trial_steps], tSDa[10];
@@ -147,7 +147,7 @@ void CUSynfire::Run() {
     // L1234: for (int a=0; a<=10/*trials*/; a++){//****Trial Loop****//
     // TODO: Loop for the appropriate number of trials.
     for (int a = 0; a <= 10; a++) {
-        start = microtime();
+        trialTimer.Start();
 
         LOG("Trial[%i] -- BEGIN", a)
         // Omitted: L1240 - 1263
@@ -155,7 +155,7 @@ void CUSynfire::Run() {
 
         LOG("Trial[%i] -- END", a)
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // L1396: Reset Trial
         tSL[2] = 0;
         tMPL[2] = 0;
@@ -164,16 +164,16 @@ void CUSynfire::Run() {
         seed = -1 * time(NULL);
         ran1(&seed);
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // Synaptic Decay
         tSynDecay[0] = microtime();
         if (_params.plasticity) { // L1408: Synapses decay after each trial.
-            DoSynapticDecay();
+            SynapticDecayLauncher();
         }
         tSynDecay[1] = microtime();
 
         tSDa[a] = (tSynDecay[2] = (tSynDecay[1] - tSynDecay[0]));
-        stop = microtime();
+        trialTimer.Stop();
 
         LOG("Publishing stats.")
         if (stats_on) {
@@ -182,7 +182,7 @@ void CUSynfire::Run() {
             avg_volts /= network_size;
 
             std::cout << "Trial " << a << std::endl;
-            std::cout << "\tDuration: " << US_TO_MS(stop - start) << " ms." << std::endl;
+            std::cout << "\tDuration: " << US_TO_MS(trialTimer.Duration()) << " ms." << std::endl;
             std::cout << "\tSpikes: " << _spikeCounter << std::endl;
             std::cout << "\tAvg. Volts: " << avg_volts << std::endl;
             std::cout << "\tActive Connections: " << _connectivity.CountSynapses('a') << std::endl;
@@ -204,7 +204,7 @@ void CUSynfire::Run() {
             }
         }
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // Reset and prep for next trial
         _spikeCounter = 0;
         for (matrix_t::iterator itr = _spikeHistory.begin(); itr != _spikeHistory.end(); ++itr) {
@@ -223,7 +223,7 @@ void CUSynfire::Run() {
 
     if (stats_on == false) return;
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Print statistics
     std::cout << "\n\nSIMULATION SUMMARY:" << std::endl;
     double avgTime = 0.0, avgTS = 0.0, avgSD = 0;
@@ -263,7 +263,7 @@ double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkL
     // L1268: for (int i=0; i<trial_steps; i++) {//****Timestep Loop****//
     for (int i = 0; i < trial_steps; ++i) {
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // L1271: Training loop
         if (_elapsedTime >= _train_times[train_time_counter]) {
             int tstart = _params.ntrain * train_group_lab;
@@ -285,7 +285,7 @@ double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkL
             }
         }
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // Enter Membrane Potential Layer loop.
         // L1286: Omitted Track voltages and conductances
         tMPL[0] = microtime();
@@ -298,7 +298,7 @@ double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkL
         tMPL[2] += (tMPL[1] - tMPL[0]);
         // std::cout << "MPL current: " << tMPL[1]-tMPL[0] << "MPL Total: " << tMPL[2] << std::endl;
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // Enter Spike Loop
         tSpkLp[0] = microtime();
         DoSpikeLoop();
@@ -306,7 +306,7 @@ double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkL
         tSpkLp[2] += (tSpkLp[1] - tSpkLp[0]);
 
 
-        //==========================================
+        //"""""""""""""""""""""""""""""""""""""""""""""""""
         // Inhibition
         inh[dsteps - 1] = _whospiked.size();
         for (std::vector<int>::iterator itr = _whospiked.begin(); itr != _whospiked.end(); ++itr) {
@@ -385,27 +385,28 @@ double CUSynfire::GetAverageVoltage() {
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "CannotResolve"
 
-void CUSynfire::DoSynapticDecay() {
+float CUSynfire::SynapticDecayLauncher() {
     LOG("Preparing Synaptic Decay Kernel")
     int numThreads = 256;
-    int numBlocks = network_size / numThreads;
+    int numBlocks = MIN( 32, (network_size + numThreads - 1) / numThreads );
+    if(numBlocks <= 0) numBlocks = 1;
     if (network_size % numThreads == 0) ++numBlocks;
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Start timers
     cudaEvent_t start, stop;
     HANDLE_ERROR(cudaEventCreate(&start));
     HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start, 0));
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Launch kernel
     LOG("Launching Synaptic Decay Kernel")
     cudaDeviceSynchronize();
     SynapticDecayKernel<<<numBlocks, numThreads>>>(_dconnectivity, network_size);
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Cache references
     int *d_actcount = _connectivity._actcount;
     int *d_supcount = _connectivity._supcount;
@@ -414,7 +415,7 @@ void CUSynfire::DoSynapticDecay() {
     bool *dev_supsyn_data = _connectivity._supsyn._data;
     bool *dev_actsyn_data = _connectivity._actsyn._data;
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Copy over Synapse data.
     HANDLE_ERROR(cudaMemcpy(&_connectivity, _dconnectivity, sizeof(Synapses), cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(d_supcount, _connectivity._supcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
@@ -430,7 +431,7 @@ void CUSynfire::DoSynapticDecay() {
                             cudaMemcpyDeviceToHost));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Restore references
     _connectivity._actcount = d_actcount;
     _connectivity._supcount = d_supcount;
@@ -439,44 +440,48 @@ void CUSynfire::DoSynapticDecay() {
     _connectivity._supsyn._data = dev_supsyn_data;
     _connectivity._actsyn._data = dev_actsyn_data;
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // End timers
-    float elapsedTime;
+    float elapsedKernelTime;
     HANDLE_ERROR(cudaEventRecord(stop, 0));
     HANDLE_ERROR(cudaEventSynchronize(stop));
-    HANDLE_ERROR(cudaEventElapsedTime(&elapsedTime, start, stop));
-    LOG("Synaptic Decay Kernel ~fin %3.1f ms", elapsedTime)
+    HANDLE_ERROR(cudaEventElapsedTime(&elapsedKernelTime, start, stop));
+
+    LOG("Synaptic Decay Kernel ~fin %3.1f ms", elapsedKernelTime)
+    return elapsedKernelTime;
 }
 
 
-void CUSynfire::MembranePotentialLauncher() {
+float CUSynfire::MembranePotentialLauncher() {
     LOG("Preparing Membrane Potential Kernel")
     int numThreads = 256;
-    int numBlocks = network_size / numThreads;
+    int numBlocks = MIN( 32, (network_size + numThreads - 1) / numThreads );
+    if(numBlocks <= 0) numBlocks = 1;
     if (network_size % numThreads == 0) ++numBlocks;
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Start timers
     cudaEvent_t start, stop;
     HANDLE_ERROR(cudaEventCreate(&start));
     HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start, 0));
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Prepare data
     int ran_calls = network_size * 4;
     for(int i = 0; i < ran_calls; ++i) _ranCache[i] = ran1(&seed);
-    HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(_dranCache, _ranCache, sizeof(float) * network_size * 4, cudaMemcpyHostToDevice));
 
-    //==========================================
+    HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
+
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Launch kernel
     LOG("Launching Membrane Potential Kernel")
     cudaDeviceSynchronize();
     MembranePotentialKernel<<<numBlocks, numThreads>>>(DT, _dnetwork, network_size, _dspikeFlags, _dranCache);
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Load results.
     HANDLE_ERROR(cudaMemcpy(_network, _dnetwork, sizeof(Neuron) * network_size, cudaMemcpyDeviceToHost));
     HANDLE_ERROR(cudaMemcpy(_spikeFlags, _dspikeFlags, sizeof(bool) * network_size, cudaMemcpyDeviceToHost));
@@ -486,26 +491,27 @@ void CUSynfire::MembranePotentialLauncher() {
         }
     }
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // End timers
-    float elapsedTime;
+    float elapsedKernelTime;
     HANDLE_ERROR(cudaEventRecord(stop, 0));
     HANDLE_ERROR(cudaEventSynchronize(stop));
-    HANDLE_ERROR(cudaEventElapsedTime(&elapsedTime, start, stop));
-    LOG("Membrane Potential Kernel ~fin  %3.1f ms", elapsedTime)
+    HANDLE_ERROR(cudaEventElapsedTime(&elapsedKernelTime, start, stop));
+    LOG("Membrane Potential Kernel ~fin  %3.1f ms", elapsedKernelTime)
+    return elapsedKernelTime;
 }
 
 
 Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     Synapses *dsyn;
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Create and copy class object.
     HANDLE_ERROR(cudaMalloc(&dsyn, sizeof(Synapses)));
     HANDLE_ERROR(cudaMemcpy(dsyn, syn, sizeof(Synapses), cudaMemcpyHostToDevice));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Allocate device actcount array.
     int *d_actcount;
     HANDLE_ERROR(cudaMalloc((void **) &d_actcount, sizeof(int) * network_size));
@@ -513,7 +519,7 @@ Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     HANDLE_ERROR(cudaMemcpy(d_actcount, syn->_actcount, sizeof(int) * network_size, cudaMemcpyHostToDevice));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Allocate device supcount array.
     int *d_supcount;
     HANDLE_ERROR(cudaMalloc((void **) &d_supcount, sizeof(int) * network_size));
@@ -521,7 +527,7 @@ Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     HANDLE_ERROR(cudaMemcpy(d_supcount, syn->_supcount, sizeof(int) * network_size, cudaMemcpyHostToDevice));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Allocate device NSS array.
     int *d_NSS;
     HANDLE_ERROR(cudaMalloc((void **) &d_NSS, sizeof(int) * network_size));
@@ -529,7 +535,7 @@ Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     HANDLE_ERROR(cudaMemcpy(d_NSS, syn->_NSS, sizeof(int) * network_size, cudaMemcpyHostToDevice));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Allocate device G (synapse strength) array.
     double *dev_G_data;
     HANDLE_ERROR(cudaMalloc((void **) &dev_G_data, _connectivity._G.Bytes()));
@@ -537,7 +543,7 @@ Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     HANDLE_ERROR(cudaMemcpy(dev_G_data, _connectivity._G._data, _connectivity._G.Bytes(), cudaMemcpyHostToDevice));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Allocate device supsyn (super synapses) array.
     bool *dev_supsyn_data;
     HANDLE_ERROR(cudaMalloc((void **) &dev_supsyn_data, _connectivity._supsyn.Bytes()));
@@ -546,7 +552,7 @@ Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
                             cudaMemcpyHostToDevice));
     cudaDeviceSynchronize();
 
-    //==========================================
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
     // Allocate device actsyn (active synapses) array.
     bool *dev_actsyn_data;
     HANDLE_ERROR(cudaMalloc((void **) &dev_actsyn_data, _connectivity._actsyn.Bytes()));
@@ -575,8 +581,8 @@ void SynapticDecayKernel( Synapses *dconnectivity, int syn_size ) {
 }
 
 __global__
-void MembranePotentialKernel( const float dt, Neuron *net, const int net_size, bool *whospiked, float *dranCache ) {
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+void MembranePotentialKernel( float dt, Neuron *net, int net_size, bool *whospiked, float *dranCache ) {
+    int tid = blockDim.x * blockIdx.x + threadIdx.x;
     if(tid < net_size) {
         whospiked[tid] = net[tid].Update(dt, dranCache[tid], dranCache[tid + 1], dranCache[tid + 2], dranCache[tid + 3]);
     }

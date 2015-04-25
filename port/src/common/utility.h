@@ -5,8 +5,13 @@
 #include <stdlib.h>
 #include "microtime.h"
 
+
 //#define LOG(format, ...) printf("********** {{ " format " }} **********\n", ##__VA_ARGS__);
 #define LOG(format, ...)
+
+
+#define MIN(a,b) (a<b?a:b)
+
 
 struct Timer {
     Timer() { }
@@ -28,5 +33,6 @@ private:
     double _start, _stop;
 };
 
+typedef struct Timer Timer;
 
 #endif //PORT_UTILITY_H

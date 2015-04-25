@@ -8,6 +8,7 @@
 
 typedef std::vector<double> row_t;
 typedef std::vector<row_t> matrix_t;
+
 class Neuron;
 
 class Synfire {
@@ -16,12 +17,12 @@ class Synfire {
 
     static Synfire CreateSynfire( int nsize );
 
-    static Synfire CreateSynfire( int nsize, double dt, int num_trials, double trial_time  );
+    static Synfire CreateSynfire( int nsize, double dt, int num_trials, double trial_time );
 
-    //~ CTOR
+    // ctor
     Synfire( SynfireParameters );
 
-    //~ DTOR
+    // dtor.
     ~Synfire();
 
     //"""""""""""""""""""""""""""""""""""""""""""""""""
@@ -43,19 +44,18 @@ class Synfire {
      */
     double RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkLp, double *tTSa );
 
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    //~ Helpers & Accessors
+    /**
+     * @return average voltage of neurons in the net.
+     */
     double GetAverageVoltage();
 
-
     //"""""""""""""""""""""""""""""""""""""""""""""""""
-    //~ Member constants.
+    // Member constants & trial information.
     const double DT, INV_DT;
     const int trials, trial_duration, trial_steps;
-
     bool stats_on;
 
-    //~ Inhibition delay data.
+    // Inhibition delay data.
     int dsteps;
     int *inh;
 
@@ -67,27 +67,27 @@ class Synfire {
 
     void DoSpikeLoop();
 
-    SynfireParameters _params;
 
-    //~ Neuron Data
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
+    // Neuron Data
     int network_size;
     Neuron *_network;
-
-    //~ Neuron helpers
     std::vector<int> _whospiked;  // labels of Neurons who spiked during a timestep.
     matrix_t _spikeHistory;
 
-    //~ Synapse Data
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
+    // Synapse Data
     Synapses _connectivity;
     Synapses _inhibition_strength;
 
-    //~ Timestep info
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
+    // Trial data.
     double _elapsedTime;  // total time elapsed in a trial.
-
-    //~ Trial data.
     int _spikeCounter;
+    SynfireParameters _params;
 
-    //~ Training data
+    //"""""""""""""""""""""""""""""""""""""""""""""""""
+    // Training data
     int *_train_lab; // training labels.
     double *_train_times;
     double _train_freq; // training spike frequency (ms)^(-1)
