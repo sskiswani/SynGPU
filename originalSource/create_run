@@ -1,0 +1,17 @@
+echo -n "enter new sim directory name:"
+read runame
+
+mkdir $runame
+cp synfire* microtime.* syn_analysis.m make_header.cpp ran1.h $runame
+cd $runame
+mkdir syn volt roster read connect
+
+echo -n "enter sim network size:"
+read netsize
+
+g++ -o set_size make_header.cpp
+./set_size $netsize
+
+rm set_size make_header.cpp
+
+g++ -o $runame synfireGrowth.cpp microtime.cpp
