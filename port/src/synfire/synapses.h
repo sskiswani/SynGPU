@@ -1,6 +1,7 @@
 #ifndef PORT_SYNAPSE_H
 #define PORT_SYNAPSE_H
 
+#include "utility.h"
 #include "helpers.h"
 
 #ifdef __GPU_BUILD__
@@ -25,10 +26,10 @@ class Synapses {
   public:
 #ifdef __GPU_BUILD__
     friend class CUSynfire;
+    friend void SynapticDecayKernel( Synapses *dconnectivity, int syn_size );
 #endif
 
     Synapses() {
-
     }
 
     Synapses( double fract_act,
@@ -92,12 +93,12 @@ class Synapses {
      */
     CUDA_CALLABLE void CheckThreshold( double syn_str, int pre, int post, char syn_type, char pd_type );
 
-    CUDA_CALLABLE void SynapticDecay();
+    void SynapticDecay();
 
     CUDA_CALLABLE double GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
 
     // Accessors
-    CUDA_CALLABLE int CountSynapses( char syn_type );
+    int CountSynapses( char syn_type );
 
     CUDA_CALLABLE INLINE double GetNSS( int label ) { return _NSS[label]; }
 

@@ -58,5 +58,14 @@ add_executable(gsynfire
     src/synfire/synfire_helpers.cpp)
 target_compile_definitions(gsynfire PUBLIC "__GPU_BUILD__")
 
-add_executable(gpu_tester src/gpu/cudaTester.cu ${COMMON_FILES})
+add_executable(gpu_tester src/gpu/cudaTester.cu
+    ${SOURCE_FILES}
+    src/common/cuda_utils.h
+    src/common/random.cpp
+    src/common/helpers.h
+    src/common/helpers.cpp
+    src/gpu/cu_synfire.cuh
+    src/gpu/cu_synfire.cu
+    src/synfire/synfire_helpers.h
+    src/synfire/synfire_helpers.cpp)
 target_compile_definitions(gpu_tester PUBLIC "__GPU_BUILD__")

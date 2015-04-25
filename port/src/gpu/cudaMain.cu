@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     // TODO: Command line arguments
 
     timer.Start();
-    CUSynfire synfire = CUSynfire::CreateCUSynfire();
+    CUSynfire synfire = CUSynfire::CreateCUSynfire(10);
     timer.Stop();
     std::cout << "Initialization time: " << US_TO_MS(timer.Duration()) << " ms." << std::endl;
 

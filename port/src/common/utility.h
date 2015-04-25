@@ -3,9 +3,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "microtime.h"
 
+//#define LOG(format, ...) printf("********** {{ " format " }} **********\n", ##__VA_ARGS__);
+#define LOG(format, ...)
 
 struct Timer {
     Timer() { }

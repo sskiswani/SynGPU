@@ -1,7 +1,7 @@
 #include <math.h>
-#include "random.h"
 #include "synapses.h"
-#include "neuron.h"
+#include "utility.h"
+#include "random.h"
 
 // Synaptic Plasticity parameters
 const double Synapses::AMPLITUDE_LTP = .01;            // Long-term Plasticity amplitude
@@ -265,6 +265,8 @@ double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr )
 
 CUDA_CALLABLE
 int Synapses::CountSynapses( char syn_type ) {
+    LOG("Yo I'm here.")
+
     int *cn_type;
     if (syn_type == 'a') {
         cn_type = _actcount;
@@ -272,8 +274,10 @@ int Synapses::CountSynapses( char syn_type ) {
         cn_type = _supcount;
     }
 
+    LOG("Holla at the for loop.")
     int sum = 0;
     for (int i = 0; i < _size; ++i) {
+        LOG("What's good %i", i)
         sum += cn_type[i];
     }
     return sum;

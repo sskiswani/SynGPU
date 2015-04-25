@@ -1,6 +1,8 @@
 #ifndef PORT_HELPERS_H
 #define PORT_HELPERS_H
 
+#include <iostream>
+#include <iomanip>
 #include <stdlib.h>
 
 #ifdef __GPU_BUILD__
@@ -16,6 +18,18 @@ class TArray2 {
 #ifdef __GPU_BUILD__
     friend class CUSynfire;
 #endif
+
+    friend std::ostream& operator<< (std::ostream& stream, const TArray2<T>& array) {
+        for(int y = 0, i =0; y < array._rows; ++y) {
+            stream << "  [";
+            for(int x = 0; x < array._cols; ++x, ++i) {
+                stream << std::setprecision(3) << " " << std::setw(4) <<  array._data[i] << " ";
+            }
+            stream << "]" << std::endl;
+        }
+
+        return stream;
+    }
 
     // typedefs
     typedef T value_type;
@@ -51,21 +65,6 @@ class TArray2 {
 
         return deviceArray;
     }
-
-    void CopyFromDevice(TArray2<T> deviceArray) {
-//        TArray2<T> *hArr;
-//        T *d_data;
-
-        // Copy over the class
-//        HANDLE_ERROR(cudaMalloc(&hArr, sizeof(TArray2<T>)));
-//        HANDLE_ERROR(cudaMemcpy(hArr, deviceArray, sizeof(TArray2<T>), cudaMemcpyDeviceToHost));
-
-        // Link data elements to deviceA
-//        HANDLE_ERROR(cudaMemcpy(&d_data, &(deviceArray->_data), sizeof(T*), cudaMemcpyDeviceToHost));
-
-        // Copy the data over.
-        HANDLE_ERROR(cudaMemcpy(_data, deviceArray._data, sizeof(T) * (_rows * _cols), cudaMemcpyDeviceToHost));
-    }
 #endif
 
 
@@ -94,9 +93,9 @@ class TArray2 {
 
     CUDA_CALLABLE inline T &operator()( int x, int y ) { return _data[x + y * _cols]; }
 
+    T *_data;
   private:
     int _cols, _rows;
-    T *_data;
 };
 
 #endif //PORT_HELPERS_H

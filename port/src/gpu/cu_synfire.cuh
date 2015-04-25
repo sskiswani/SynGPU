@@ -1,17 +1,9 @@
 #ifndef PORT_CUSYNFIRE_H
 #define PORT_CUSYNFIRE_H
 
-#ifdef __CUDACC__
-#define CUDA_CALLABLE __host__ __device__
-#else
-#define CUDA_CALLABLE
-#define __global__
-#endif
-
 #include <vector>
 #include <fstream>
 #include "synfire_helpers.h"
-//#include "synapses.cpp"
 #include "synapses.h"
 
 typedef std::vector<double> row_t;
@@ -103,5 +95,5 @@ class CUSynfire {
     double _train_dur;  // training duration in ms
 };
 
-
 #endif //PORT_CUSYNFIRE_H
+
