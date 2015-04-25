@@ -6,10 +6,6 @@
 #include "synfire.h"
 #include "neuron.h"
 
-//"""""""""""""""""""""""""""""""""""""""""""""""""
-// TODO: Pending attributes from the top of synfireGrowth.cpp.
-int *group_rank; //contains group ranking of each neuron after chain network forms
-
 Synfire Synfire::CreateSynfire() {
     return Synfire(SynfireParameters());
 }
@@ -58,31 +54,33 @@ Synfire::Synfire( SynfireParameters params )
     Initialize();
 }
 
+Synfire::~Synfire() {
+    delete[] _train_lab;
+    delete[] _train_times;
+
+    delete[] inh;
+
+    delete[] _network;
+}
+
 void Synfire::Initialize() {
     //~ Ensure parameter sanity.
     _elapsedTime = 0.0;
     _spikeCounter = 0;
+    stats_on = true;
 
     // L1089: Seed random number generator & check RAND_MAX
     seed = -1 * time(NULL);
+    group_s = network_size / _params.ntrg;  // L1086
+
 
     //==========================================
-    //~ Statistics & Logging.
-    stats_on = true;
-
-    //==========================================
-    //~ Initialize dependencies.
-    group_rank = new int[network_size];
-
+    //~ Initialize training data.
     if (_params.man_tt == false) {
         _train_times = new double[2];
         _train_times[0] = 0.0;
         _train_times[1] = trial_duration + 1000;
     }
-
-    //==========================================
-    //~ Initialize loaded dependencies
-    group_s = network_size / _params.ntrg;  // L1086
 
     // Training labels.
     _train_lab = new int[_params.ntrain * _params.ntrg];
@@ -92,15 +90,13 @@ void Synfire::Initialize() {
         }
     }
 
+
+    //==========================================
     // Inhibition delay
     dsteps = (int) (1 + INV_DT * _params.inh_d);
     inh = new int[dsteps];
     for (int i = 0; i < dsteps; ++i) inh[i] = 0;
 
-    //==========================================
-    //~ Initialize Synapses.
-//    _connectivity = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
-//    _inhibition_strength = Synapses(frac, 0.0, act, sup, cap, syndec, conn_type, network_size, tempNSS, window, eq_syn);
 
     //==========================================
     //~ Initialize Neurons & their helpers
@@ -160,15 +156,16 @@ void Synfire::Run() {
             // Do error checking.
             bool *send_to;
             int send_count, act_count;
-            for(int i = 0; i < network_size; ++i) {
+            for (int i = 0; i < network_size; ++i) {
                 send_count = _connectivity.GetPostSynapticLabel('a', i, send_to);
                 act_count = 0;
-                for(int j = 0; j < network_size; ++j) {
-                    if(send_to[j] == true) ++act_count;
+                for (int j = 0; j < network_size; ++j) {
+                    if (send_to[j] == true) ++act_count;
                 }
 
-                if(act_count != send_count) {
-                    std::cout << "Neuron[" << i << "] reports " << send_count << " connections but actually has " << act_count << " connections." << std::endl;
+                if (act_count != send_count) {
+                    std::cout << "Neuron[" << i << "] reports " << send_count << " connections but actually has " <<
+                    act_count << " connections." << std::endl;
                 }
             }
         }
@@ -321,8 +318,8 @@ void Synfire::DoSpikeLoop() {
         if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
             int j_nss = _connectivity.GetNSS(spiker); // TODO: Figure out NSS indexing with send_to.
 
-            for(int post = 0, j = 0; post < network_size && j < j_nss; ++post) {
-                if(send_to[post] == false) continue;
+            for (int post = 0, j = 0; post < network_size && j < j_nss; ++post) {
+                if (send_to[post] == false) continue;
                 _network[post].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, post), 'e');
                 ++j;
             }
@@ -330,7 +327,7 @@ void Synfire::DoSpikeLoop() {
             send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
 
             for (int post = 0, j = 0; post < network_size && j < send_count; post++) {
-                if(send_to[post] == false) continue;
+                if (send_to[post] == false) continue;
                 _network[post].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, post), 'e');
                 ++j;
             }

@@ -38,13 +38,22 @@ Neuron::Neuron( int label,
     Initialize(label, exc_freq, inh_freq, exc_amp, inh_amp, global_inhibition, DEFAULT_LEAK);
 }
 
+Neuron::~Neuron() {
+
+}
+
 CUDA_CALLABLE
 bool Neuron::Update( float dt ) {
+    return Update(dt, ran1(&seed), ran1(&seed), ran1(&seed), ran1(&seed));
+}
+
+CUDA_CALLABLE
+bool Neuron::Update( float dt, float r1, float r2, float r3, float r4 ) {
     bool spike = false;
 
     //spontaneous excitation and inhibition
-    if (ran1(&seed) < dt * _spfreq_ex) ExciteInhibit(_spamp_ex * ran1(&seed), 'e');
-    if (ran1(&seed) < dt * _spfreq_in) ExciteInhibit(_spamp_in * ran1(&seed), 'i');
+    if (r1 < dt * _spfreq_ex) ExciteInhibit(_spamp_ex * r2, 'e');
+    if (r3 < dt * _spfreq_in) ExciteInhibit(_spamp_in * r4, 'i');
 
 
     // if neuron isn't in latent period before spike

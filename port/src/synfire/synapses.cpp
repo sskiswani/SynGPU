@@ -79,6 +79,12 @@ Synapses::Synapses( double fract_act,
     }
 }
 
+Synapses::~Synapses() {
+    delete [] _NSS;
+    delete [] _actcount;
+    delete [] _supcount;
+}
+
 /**
  *	Main problem is allocating space on device (how to transfer correct amount from device2host)
  *	To resolve issue: have kernel identify total number of activated synapse per spiked neuron

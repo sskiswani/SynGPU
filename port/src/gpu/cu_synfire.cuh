@@ -11,8 +11,10 @@ typedef std::vector<row_t> matrix_t;
 
 class Neuron;
 
-//~ CUDA Methods
+//~ Kernels
 __global__ void SynapticDecayKernel( Synapses *dconnectivity, int syn_size );
+
+__global__ void MembranePotentialKernel( float dt, Neuron *net, int net_size, bool *whospiked, float *dranCache );
 
 class CUSynfire {
   public:
@@ -24,6 +26,9 @@ class CUSynfire {
 
     //~ CTOR
     CUSynfire( SynfireParameters );
+
+    //~ DTOR
+    ~CUSynfire();
 
     void Run();
 
@@ -65,6 +70,8 @@ class CUSynfire {
 
     void DoSynapticDecay();
 
+    void MembranePotentialLauncher();
+
     Synapses *CreateDeviceSynapses( Synapses *syn );
 
     SynfireParameters _params;
@@ -74,6 +81,8 @@ class CUSynfire {
     Neuron *_network, *_dnetwork;
 
     //~ Neuron helpers
+    float *_ranCache, *_dranCache;
+    bool *_spikeFlags, *_dspikeFlags;
     std::vector<int> _whospiked;  // labels of Neurons who spiked during a timestep.
     matrix_t _spikeHistory;
 

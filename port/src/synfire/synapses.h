@@ -44,6 +44,8 @@ class Synapses {
               double window,
               double eq_syn );
 
+    ~Synapses();
+
     /**
      *  Activate a synapse between two neurons.
      *

@@ -21,6 +21,9 @@ class Synfire {
     //~ CTOR
     Synfire( SynfireParameters );
 
+    //~ DTOR
+    ~Synfire();
+
     //"""""""""""""""""""""""""""""""""""""""""""""""""
     //~ Synfire Methods
     //"""""""""""""""""""""""""""""""""""""""""""""""""

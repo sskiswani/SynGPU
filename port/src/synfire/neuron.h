@@ -2,8 +2,10 @@
 #define PORT_NEURON_H
 
 #ifdef __GPU_BUILD__
+
 #include "cuda_utils.h"
 #include <cuda_runtime.h>
+
 #define CUDA_CALLABLE __host__ __device__
 #define INLINE
 #else
@@ -14,15 +16,21 @@
 class Neuron {
   public:
 #ifdef __GPU_BUILD__
+
     friend class CUSynfire;
+
 #endif
 
     Neuron();
 
     Neuron( int label, double exc_freq, double inh_freq, double exc_amp, double inh_amp, double global_inhibition );
 
+    ~Neuron();
+
 
     CUDA_CALLABLE bool Update( float dt );
+
+    CUDA_CALLABLE bool Update( float dt, float r1, float r2, float r3, float r4 );
 
     CUDA_CALLABLE void neur_dyn( double dt, bool no_volt );
 
