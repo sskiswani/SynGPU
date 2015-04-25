@@ -44,8 +44,8 @@ The following options were ported from the original source.
 - `-B <int>` (*default: 10*) sets the number of training neurons 
 - `-C <float>` (*default: 2000*) sets the number of ms per trial 
 - `-c <double>` (*default: .999996*) sets the decay rate of the synapses 
-- `-D <int>` sets the max number of supersynapses a neuron may have
-- `-d` outputs various statistics after each trial for diagnostic purposes (i.e. spk count, avg volt, etc)
+- `-D <int>` (*default: 10*) sets the max number of supersynapses a neuron may have
+- `-d` (*default: false*) disable output
 - `-f <double>` (*default: .1*) sets the fraction of synapses initially active 
 - `-g <float>` Sets GLTP
 - `-i <double>` (*default: .3*) sets the amplitude of the global inhibition 
