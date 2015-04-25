@@ -3,7 +3,7 @@
 
 #include "helpers.h"
 
-#ifdef __CUDACC__
+#ifdef __GPU_BUILD__
 #define CUDA_CALLABLE __host__ __device__
 #else
 #define CUDA_CALLABLE
@@ -13,6 +13,10 @@ class Neuron;
 
 class Synapses {
   public:
+#ifdef __GPU_BUILD__
+    friend class CUSynfire;
+#endif
+
     Synapses( double fract_act,
               double glob,
               double act_thres,
@@ -108,13 +112,14 @@ class Synapses {
 
     //~ Internal data.
     int _size;  // size of the network.
+
     double _window; // history time window size (ms)
     double _actthres, _supthres, _synmax;   // Active, super thresholds, synapse cap
     double _syndec, _GLTP;                  //synaptic decay
 
     int *_actcount, *_supcount, *_NSS;  // Arrays tracking numbers of active and super cns of each neuron in the network
     TArray2<double> _G;                // Synaptic strength matrix;
-    TArray2<bool> _actsyn, _supsyn;     // Arrays containing the postsynaptic cns of each neuron in the network
+    TArray2<bool> _actsyn, _supsyn;    // Arrays containing the postsynaptic cns of each neuron in the network
 
 };
 

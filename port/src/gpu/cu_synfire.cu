@@ -1,8 +1,7 @@
 #include <iostream>
 #include <vector>
-#include "cu_synfire.h"
+#include "cu_synfire.cuh"
 #include "cuda_utils.h"
-//#include <cuda_runtime.h>
 #include "random.h"
 #include "microtime.h"
 #include "neuron.h"
@@ -114,10 +113,10 @@ void CUSynfire::Initialize() {
     HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
 
     //~ Allocate and copy device instances of Synapses classes.
-    HANDLE_ERROR(cudaMalloc((void **) &_dconnectivity, sizeof(_connectivity)));
-    HANDLE_ERROR(cudaMemcpy(_dconnectivity, &_connectivity, sizeof(_connectivity), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMalloc((void **) &_dinh_str, sizeof(_inhibition_strength)));
-    HANDLE_ERROR(cudaMemcpy(_dinh_str, &_inhibition_strength, sizeof(_inhibition_strength), cudaMemcpyHostToDevice));
+//    HANDLE_ERROR(cudaMalloc((void **) &_dconnectivity, sizeof(_connectivity)));
+//    HANDLE_ERROR(cudaMemcpy(_dconnectivity, &_connectivity, sizeof(_connectivity), cudaMemcpyHostToDevice));
+//    HANDLE_ERROR(cudaMalloc((void **) &_dinh_str, sizeof(_inhibition_strength)));
+//    HANDLE_ERROR(cudaMemcpy(_dinh_str, &_inhibition_strength, sizeof(_inhibition_strength), cudaMemcpyHostToDevice));
 }
 
 void CUSynfire::Run() {
@@ -334,9 +333,34 @@ double CUSynfire::GetAverageVoltage() {
     return (avg / network_size);
 }
 
-__global__
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "CannotResolve"
+Synapses* CUSynfire::CreateDeviceSynapses(Synapses syn) {
+    Synapses* dsyn;
+
+    // Create and copy class object.
+    HANDLE_ERROR(cudaMalloc((void **)&dsyn, sizeof(Synapses)));
+    HANDLE_ERROR(cudaMemcpy(dsyn, &syn, sizeof(Synapses), cudaMemcpyHostToDevice));
+
+    // Now copy over arrays.
+    int* d_ptr;
+    HANDLE_ERROR(cudaMalloc((void **)(&d_ptr), sizeof(int) * network_size));
+
+
+//    for(int i = 0; i < N; i++){
+//        cudaMalloc((void**)&(vptr[i]), v->dim[i]*sizeof(int));
+//        cudaCheckErrors("cudaMalloc2 fail");
+//        cudaMemcpy(&(dev_v->vecptr[i]), &vptr[i], sizeof(int*), cudaMemcpyHostToDevice);
+//        cudaCheckErrors("cudaMemcpy2 fail");
+//    }
+//
+//    for(int i = 0; i<N; i++ ){                   //copy arrays
+//        cudaMemcpy(vptr[i], v->vecptr[i], v->dim[i]*sizeof(int), cudaMemcpyHostToDevice);
+//        cudaCheckErrors("cudaMemcpy3 fail");
+//    }
+}
+
+__global__
 void SynapticDecayKernel( Synapses* dconnectivity, int syn_size ) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 

@@ -19,4 +19,6 @@ void static HandleError( cudaError_t err, const char *file, int line ) {
     }}
 
 
+
+
 #endif //PORT_CUDA_UTILS_H

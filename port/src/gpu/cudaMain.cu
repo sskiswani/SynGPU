@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include "utility.h"
-#include "cu_synfire.h"
+#include "cu_synfire.cuh"
 #include "cuda_utils.h"
 
 

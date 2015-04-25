@@ -4,7 +4,8 @@
 # CXXINCLUDES := -I./src/port/ -I./src/common/ -I./src/gpu/ -I./src/synfire/
 
 NVCC := /usr/local/cuda/bin/nvcc
-NVCCFLAGS := -O3 -arch sm_30
+# NVCCFLAGS := -O3 -arch sm_30
+NVCCFLAGS := -O3 -gencode=arch=compute_20,code=sm_20
 NVCCINCLUDES := -I. -I/usr/local/cuda/include  -I/usr/local/cuda/NVIDIA_GPU_Computing_SDK/shared/inc -I../src/port/
 NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
 
@@ -12,6 +13,8 @@ NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
 ### PROJECT SETTINGS
 # The name of the executable to be created
 BIN_NAME := synfire
+GPU_BIN_NAME := cusynfire
+TEST_BIN_NAME := cu_test
 
 # Extension of source files used in the project
 SRC_EXT = cpp
@@ -49,7 +52,19 @@ DEPS = $(OBJECTS:.o=.d)
 # Useful for debugging and adding features
 print-%: ; @echo $*=$($*)
 
-#### COMPILATION RULES
+
+#### DEBUGGING RULES
+
+cu_test: src/gpu/cudaTester.cu
+	$(NVCC) $(NVCCINCLUDES) $(INCLUDES) -D__GPU_BUILD__=1 $(NVCCFLAGS) $^ -o $@
+
+# syn_gpu: $(GPU_PATH)cudaMain.cu microtime.o CUSynfire.o neuron.o synapses.o microtime.o random.o
+	# $(NVCC) $(NVCCINCLUDES) $(CXXINCLUDES) $(NVCCFLAGS) $^ -o $@
+
+# CUSynfire.o: $(CMN_PATH)microtime.h $(GPU_PATH)CUSynfire.h $(GPU_PATH)CUSynfire.cpp
+	# $(NVCC) $(CXXINCLUDES) $(CXXINCLUDES) -c $(GPU_PATH)CUSynfire.cpp
+
+#### GENERIC COMPILATION RULES
 $(BIN_NAME): $(OBJECTS)
 	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
 

@@ -9,6 +9,10 @@
 
 class Neuron {
   public:
+#ifdef __GPU_BUILD__
+    friend class CUSynfire;
+#endif
+
     Neuron();
 
     Neuron( int label, double exc_freq, double inh_freq, double exc_amp, double inh_amp, double global_inhibition );
