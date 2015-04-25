@@ -24,6 +24,7 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - [ ] Membrane Potential Layer (MPL) kernel.
 - [ ] Spike Loop (SL) kernel.
 - [ ] Timestep (TS) kernel.
+- [ ] Add atomic operation safety.
 - [ ] Fix `run.py` (and/or make it useful)
 - [ ] Finish the report.
 
