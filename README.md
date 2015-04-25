@@ -1,15 +1,15 @@
 Neural Networks on the GPU
 ===
 
-A port of the SynfireGrowth neural network to the GPU, using CUDA. Choose your flavor:
+A port of the SynfireGrowth Neural Network trial runner to the GPU, using CUDA.
+
+Choose your flavor:
 
 - CPU build and run: `cd ./port && make synfire && ./synfire`
 - GPU build and run: `cd ./port && make cu_synfire && ./cu_synfire`
 
-~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies.
-```$ python3 run.py [-h] username password host [via-host]```~~ 
+Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 
-Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
 
 #TODO
 
@@ -37,3 +37,8 @@ Arguments saved in a text file can be referenced by prefixing the filename with 
 #Misc
 
 Code exclusive to the GPU lives in the `port/src/gpu` folder.
+
+~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies.
+```$ python3 run.py [-h] username password host [via-host]```~~ 
+
+Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
