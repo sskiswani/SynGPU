@@ -41,10 +41,9 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 
 Code exclusive to the GPU lives in the `port/src/gpu` folder.
 
-~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies.
-```$ python3 run.py [-h] username password host [via-host]```~~ 
+~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies. 
 
-Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
+Usage: ```$ python3 run.py [-h] username password host [via-host]```. These arguments can be saved in a text file and then referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.~~
 
 ##Options and Flags
 The following options were ported from the original source.
