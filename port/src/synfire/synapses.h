@@ -4,9 +4,19 @@
 #include "helpers.h"
 
 #ifdef __GPU_BUILD__
+#include "cuda_utils.h"
+#include <cuda_runtime.h>
+
+#define INC(x)  (atomicAdd(&x, 1))
+#define DEC(x)  (atomicSub(&x, 1))
+
 #define CUDA_CALLABLE __host__ __device__
+#define INLINE
 #else
+#define INC(x)  (++(x))
+#define DEC(x)  (--(x))
 #define CUDA_CALLABLE
+#define INLINE  inline
 #endif
 
 class Neuron;
@@ -16,6 +26,10 @@ class Synapses {
 #ifdef __GPU_BUILD__
     friend class CUSynfire;
 #endif
+
+    Synapses() {
+
+    }
 
     Synapses( double fract_act,
               double glob,
@@ -85,7 +99,7 @@ class Synapses {
     // Accessors
     CUDA_CALLABLE int CountSynapses( char syn_type );
 
-    CUDA_CALLABLE inline double GetNSS( int label ) { return _NSS[label]; }
+    CUDA_CALLABLE INLINE double GetNSS( int label ) { return _NSS[label]; }
 
 //    inline double GetSynapticStrength( int pre, int post ) { return _G[pre * _size + post]; }
 
@@ -93,22 +107,24 @@ class Synapses {
      * @param pre   Label of synapse start neuron.
      * @param post  Label of synapse end neuron.
      */
-    CUDA_CALLABLE inline double GetSynapticStrength( int pre, int post ) { return _G(post, pre); }
+    CUDA_CALLABLE INLINE double GetSynapticStrength( int pre, int post ) { return _G(post, pre); }
 
     /**
      * @param pre   Label of synapse start neuron.
      * @param post  Label of synapse end neuron.
      * @param value New synaptic strength value.
      */
-    CUDA_CALLABLE inline void SetSynapticStrength( int pre, int post, double value ) { _G(post, pre) = value; }
+    CUDA_CALLABLE INLINE void SetSynapticStrength( int pre, int post, double value ) {
+        _G(post, pre) = value;
+    }
 
-    CUDA_CALLABLE inline double *GetSynapsesStartingAt( int pre ) { return _G.row(pre); }
+    CUDA_CALLABLE INLINE double *GetSynapsesStartingAt( int pre ) { return _G.row(pre); }
 
-    CUDA_CALLABLE inline int GetActCount( int i ) { return _actcount[i]; }
+    CUDA_CALLABLE INLINE int GetActCount( int i ) { return _actcount[i]; }
 
-    CUDA_CALLABLE inline int GetSupCount( int i ) { return _supcount[i]; }
+    CUDA_CALLABLE INLINE int GetSupCount( int i ) { return _supcount[i]; }
 
-    CUDA_CALLABLE inline double GetSynDecay() { return _syndec; }
+    CUDA_CALLABLE INLINE double GetSynDecay() { return _syndec; }
 
   private:
     // Synaptic Plasticity parameters

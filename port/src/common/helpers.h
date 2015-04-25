@@ -47,6 +47,21 @@ class TArray2 {
 
         return deviceArray;
     }
+
+    void CopyFromDevice(TArray2<T> deviceArray) {
+//        TArray2<T> *hArr;
+//        T *d_data;
+
+        // Copy over the class
+//        HANDLE_ERROR(cudaMalloc(&hArr, sizeof(TArray2<T>)));
+//        HANDLE_ERROR(cudaMemcpy(hArr, deviceArray, sizeof(TArray2<T>), cudaMemcpyDeviceToHost));
+
+        // Link data elements to deviceA
+//        HANDLE_ERROR(cudaMemcpy(&d_data, &(deviceArray->_data), sizeof(T*), cudaMemcpyDeviceToHost));
+
+        // Copy the data over.
+        HANDLE_ERROR(cudaMemcpy(_data, deviceArray._data, sizeof(T) * (_rows * _cols), cudaMemcpyDeviceToHost));
+    }
 #endif
 
 

@@ -3,9 +3,12 @@
 
 #ifdef __GPU_BUILD__
 #include "cuda_utils.h"
+#include <cuda_runtime.h>
 #define CUDA_CALLABLE __host__ __device__
+#define INLINE
 #else
 #define CUDA_CALLABLE
+#define INLINE  inline
 #endif
 
 class Neuron {
@@ -27,7 +30,7 @@ class Neuron {
 
     CUDA_CALLABLE void ExciteInhibit( double amp, char p );
 
-    CUDA_CALLABLE double Get( char code ) {
+    CUDA_CALLABLE INLINE double Get( char code ) {
         if (code == 'e') return _gexc;
         else if (code == 'i') return _ginh;
         else if (code == 'v') return _volts;
@@ -36,11 +39,11 @@ class Neuron {
         return 0.0;
     }
 
-    CUDA_CALLABLE inline double Volts() { return _volts; }
+    CUDA_CALLABLE INLINE double Volts() { return _volts; }
 
-    CUDA_CALLABLE inline double Excitatory() { return _gexc; }
+    CUDA_CALLABLE INLINE double Excitatory() { return _gexc; }
 
-    CUDA_CALLABLE inline double Inhibitory() { return _ginh; }
+    CUDA_CALLABLE INLINE double Inhibitory() { return _ginh; }
 
   private:
     CUDA_CALLABLE void Initialize( int label,
@@ -51,7 +54,7 @@ class Neuron {
                                    double global_inhibition,
                                    double leak );
 
-    CUDA_CALLABLE inline void SetSpinFrequency( double excitory, double inhibitory ) {
+    CUDA_CALLABLE INLINE void SetSpinFrequency( double excitory, double inhibitory ) {
         _spfreq_ex = excitory * 0.001;
         _spfreq_in = inhibitory * 0.001;
     }

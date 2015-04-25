@@ -165,7 +165,6 @@ void Synapses::Synaptic_Plasticity( int spiker, double t, double *spk_times, int
                 _G(k, spiker) = tempDep;
             }
         }
-
     }
 }
 

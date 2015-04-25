@@ -11,6 +11,7 @@
 #include <vector>
 #include <fstream>
 #include "synfire_helpers.h"
+//#include "synapses.cpp"
 #include "synapses.h"
 
 typedef std::vector<double> row_t;

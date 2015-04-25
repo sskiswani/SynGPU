@@ -5,16 +5,12 @@
 #include "random.h"
 #include "microtime.h"
 #include "neuron.h"
+#include "synapses.cpp"
 
-
-//"""""""""""""""""""""""""""""""""""""""""""""""""
-// TODO: Pending attributes from the top of synfireGrowth.cpp.
-int *group_rank; //contains group ranking of each neuron after chain network forms
 
 CUSynfire CUSynfire::CreateCUSynfire() {
     return CUSynfire(SynfireParameters());
 }
-
 
 CUSynfire CreateCUSynfire( int nsize ) {
     struct SynfireParameters parms;
@@ -56,6 +52,7 @@ CUSynfire::CUSynfire( SynfireParameters params )
                                params.tempNSS,
                                params.window,
                                params.eq_syn) {
+    _params = params;
     Initialize();
 }
 
@@ -73,7 +70,7 @@ void CUSynfire::Initialize() {
 
     //==========================================
     //~ Initialize dependencies.
-    group_rank = new int[network_size];
+//    group_rank = new int[network_size];
 
     if (_params.man_tt == false) {
         _train_times = new double[2];
@@ -334,6 +331,8 @@ double CUSynfire::GetAverageVoltage() {
 
 
 void CUSynfire::DoSynapticDecay() {
+    printf("********** Preparing Synaptic Decay Kernel **********\n");
+
     int numThreads = 256;
     int numBlocks = network_size / numThreads;
     if (network_size % numThreads == 0) ++numBlocks;
@@ -344,15 +343,42 @@ void CUSynfire::DoSynapticDecay() {
     HANDLE_ERROR(cudaEventCreate(&stop));
     HANDLE_ERROR(cudaEventRecord(start, 0));
 
-    SynapticDecayKernel <<< numBlocks, numThreads >>> (_dconnectivity, network_size);
+    printf("********** Launching Synaptic Decay Kernel **********\n");
+    cudaDeviceSynchronize();
+
+    SynapticDecayKernel<<< numBlocks, numThreads >>> (_dconnectivity, network_size);
+
+    cudaDeviceSynchronize();
+    printf("********** Syncing Synaptic Decay Kernel **********\n");
+
+
+    //~ Copy over synapse data.
+    Synapses *hsyn;
+    HANDLE_ERROR(cudaMallocHost((void**) &hsyn, sizeof(Synapses)));
+    HANDLE_ERROR(cudaMemcpy(hsyn, _dconnectivity, sizeof(Synapses), cudaMemcpyDeviceToHost));
+
+    HANDLE_ERROR(cudaMemcpy(_connectivity._supcount, hsyn->_supcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(_connectivity._actcount, hsyn->_actcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
+    printf("********** Syncing Synaptic Decay Kernel TArrays **********\n");
+
+    TArray2<double> hG_ptr;
+    HANDLE_ERROR(cudaMemcpy(&hG_ptr, &(hsyn->_G), sizeof(TArray2<double>), cudaMemcpyDeviceToHost));
+    _connectivity._G.CopyFromDevice(hG_ptr);
+
+//    TArray2<bool> *hsupsyn;
+//    HANDLE_ERROR(cudaMemcpy(&hsupsyn, &(hsyn->_supsyn), sizeof(TArray2<bool>), cudaMemcpyDeviceToHost));
+//    _connectivity._supsyn.CopyFromDevice(hsupsyn);
+
+//    TArray2<bool> *hactsyn;
+//    HANDLE_ERROR(cudaMemcpy(&hactsyn, &(hsyn->_actsyn), sizeof(TArray2<bool>), cudaMemcpyDeviceToHost));
+//    _connectivity._actsyn.CopyFromDevice(hactsyn);
 
     // End timers
     float elapsedTime;
     HANDLE_ERROR(cudaEventRecord(stop, 0));
     HANDLE_ERROR(cudaEventSynchronize(stop));
     HANDLE_ERROR(cudaEventElapsedTime(&elapsedTime, start, stop));
-    printf("Time taken:  %3.1f ms\n", elapsedTime);
-
+    printf("********** Kernel Time taken:  %3.1f ms **********\n", elapsedTime);
 }
 
 #pragma clang diagnostic push
@@ -360,7 +386,6 @@ void CUSynfire::DoSynapticDecay() {
 
 Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     // TODO: Test that data is transferred successfully.
-
     Synapses *dsyn;
 
     // Create and copy class object.
