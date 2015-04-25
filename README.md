@@ -1,7 +1,11 @@
 Neural Networks on the GPU
 ===
 
-A port of the SynfireGrowth neural network to the GPU, using CUDA.
+A port of the SynfireGrowth neural network to the GPU, using CUDA. Choose your flavor:
+
+- `./port/make synfire` for the CPU version.
+- `./port/make cu_synfire` for the GPU version.
+
 
 ~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies.
 ```$ python3 run.py [-h] username password host [via-host]```~~ 
