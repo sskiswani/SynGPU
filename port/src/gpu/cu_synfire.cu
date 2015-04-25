@@ -113,10 +113,8 @@ void CUSynfire::Initialize() {
     HANDLE_ERROR(cudaMemcpy(_dnetwork, _network, sizeof(Neuron) * network_size, cudaMemcpyHostToDevice));
 
     //~ Allocate and copy device instances of Synapses classes.
-//    HANDLE_ERROR(cudaMalloc((void **) &_dconnectivity, sizeof(_connectivity)));
-//    HANDLE_ERROR(cudaMemcpy(_dconnectivity, &_connectivity, sizeof(_connectivity), cudaMemcpyHostToDevice));
-//    HANDLE_ERROR(cudaMalloc((void **) &_dinh_str, sizeof(_inhibition_strength)));
-//    HANDLE_ERROR(cudaMemcpy(_dinh_str, &_inhibition_strength, sizeof(_inhibition_strength), cudaMemcpyHostToDevice));
+    _dconnectivity = CreateDeviceSynapses(&_connectivity);
+    _dinh_str = CreateDeviceSynapses(&_inhibition_strength);
 }
 
 void CUSynfire::Run() {
@@ -335,43 +333,58 @@ double CUSynfire::GetAverageVoltage() {
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "CannotResolve"
-Synapses* CUSynfire::CreateDeviceSynapses(Synapses syn) {
-    Synapses* dsyn;
+
+Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
+    // TODO: Test that data is transferred successfully.
+
+    Synapses *dsyn;
 
     // Create and copy class object.
-    HANDLE_ERROR(cudaMalloc((void **)&dsyn, sizeof(Synapses)));
-    HANDLE_ERROR(cudaMemcpy(dsyn, &syn, sizeof(Synapses), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMalloc((void **) &dsyn, sizeof(Synapses)));
+    HANDLE_ERROR(cudaMemcpy(dsyn, syn, sizeof(Synapses), cudaMemcpyHostToDevice));
 
-    // Now copy over arrays.
-    int* d_ptr;
-    HANDLE_ERROR(cudaMalloc((void **)(&d_ptr), sizeof(int) * network_size));
+    // Allocate device memory.
+    int *_dactcount, *_dsupcount, *_dNSS;
+    HANDLE_ERROR(cudaMalloc((void **) &_dactcount, sizeof(int) * network_size));
+    HANDLE_ERROR(cudaMalloc((void **) &_dsupcount, sizeof(int) * network_size));
+    HANDLE_ERROR(cudaMalloc((void **) &_dNSS, sizeof(int) * network_size));
 
+    // Link to class.
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_supcount), &_dsupcount, sizeof(int *), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_actcount), &_dactcount, sizeof(int *), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_NSS), &_dNSS, sizeof(int *), cudaMemcpyHostToDevice));
 
-//    for(int i = 0; i < N; i++){
-//        cudaMalloc((void**)&(vptr[i]), v->dim[i]*sizeof(int));
-//        cudaCheckErrors("cudaMalloc2 fail");
-//        cudaMemcpy(&(dev_v->vecptr[i]), &vptr[i], sizeof(int*), cudaMemcpyHostToDevice);
-//        cudaCheckErrors("cudaMemcpy2 fail");
-//    }
-//
-//    for(int i = 0; i<N; i++ ){                   //copy arrays
-//        cudaMemcpy(vptr[i], v->vecptr[i], v->dim[i]*sizeof(int), cudaMemcpyHostToDevice);
-//        cudaCheckErrors("cudaMemcpy3 fail");
-//    }
+    // Copy data from host
+    HANDLE_ERROR(cudaMemcpy(_dsupcount, syn->_supcount, sizeof(int) * network_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(_dactcount, syn->_actcount, sizeof(int) * network_size, cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(_dNSS, syn->_NSS, sizeof(int) * network_size, cudaMemcpyHostToDevice));
+
+    TArray2<double> *_dG;
+    TArray2<bool> *_dactsyn, *_dsupsyn;
+    _dactsyn = syn->_actsyn.CopyToDevice();
+    _dsupsyn = syn->_supsyn.CopyToDevice();
+
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_G), &_dG, sizeof(TArray2<double> *), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_actsyn), &_dactsyn, sizeof(TArray2<bool> *), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_supsyn), &_dsupsyn, sizeof(TArray2<bool> *), cudaMemcpyHostToDevice));
+
+    return dsyn;
 }
 
 __global__
-void SynapticDecayKernel( Synapses* dconnectivity, int syn_size ) {
+void SynapticDecayKernel( Synapses *dconnectivity, int syn_size ) {
     int i = blockDim.x * blockIdx.x + threadIdx.x;
 
     if (i < syn_size) {
         int pre = i / syn_size;
         double syndecay = dconnectivity->GetSynDecay();
         for (int j = 0; j < syn_size; ++j) {
-            int syn_str = dconnectivity->GetSynapticStrength(pre, j);
-            dconnectivity->CheckThreshold(syn_str, pre, j, 'a', 'd');
-            dconnectivity->CheckThreshold(syn_str, pre, j, 's', 'd');
+            double syn_str_dec = dconnectivity->GetSynapticStrength(pre, j) * syndecay;
+            dconnectivity->CheckThreshold(syn_str_dec, pre, j, 'a', 'd');
+            dconnectivity->CheckThreshold(syn_str_dec, pre, j, 's', 'd');
+            dconnectivity->SetSynapticStrength(pre, j, syn_str_dec);
         }
     }
 }
+
 #pragma clang diagnostic pop

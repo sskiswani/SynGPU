@@ -70,7 +70,7 @@ class CUSynfire {
 
     void DoSpikeLoop();
 
-    Synapses *CreateDeviceSynapses( Synapses syn );
+    Synapses *CreateDeviceSynapses( Synapses *syn );
 
     SynfireParameters _params;
 

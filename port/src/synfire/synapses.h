@@ -14,8 +14,11 @@ class Neuron;
 class Synapses {
   public:
 #ifdef __GPU_BUILD__
+
     friend class CUSynfire;
+
 #endif
+
     Synapses( double fract_act,
               double glob,
               double act_thres,
@@ -94,11 +97,20 @@ class Synapses {
      */
     CUDA_CALLABLE inline double GetSynapticStrength( int pre, int post ) { return _G(post, pre); }
 
-    inline double *GetSynapseStartingAt( int pre ) { return _G.row(pre); }
+    /**
+     * @param pre   Label of synapse start neuron.
+     * @param post  Label of synapse end neuron.
+     * @param value New synaptic strength value.
+     */
+    CUDA_CALLABLE inline void SetSynapticStrength( int pre, int post, double value ) { _G(post, pre) = value; }
 
-    inline int GetActCount( int i ) { return _actcount[i]; }
+    CUDA_CALLABLE inline double *GetSynapsesStartingAt( int pre ) { return _G.row(pre); }
 
-    inline int GetSupCount( int i ) { return _supcount[i]; }
+    CUDA_CALLABLE inline int GetActCount( int i ) { return _actcount[i]; }
+
+    CUDA_CALLABLE inline int GetSupCount( int i ) { return _supcount[i]; }
+
+    CUDA_CALLABLE inline double GetSynDecay() { return _syndec; }
 
   private:
     // Synaptic Plasticity parameters

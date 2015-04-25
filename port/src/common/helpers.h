@@ -38,6 +38,8 @@ class TArray2 {
 
         // Copy the elements array to the device.
         HANDLE_ERROR(cudaMalloc((void **) &(d_data), sizeof(T) * (_rows * _cols)));
+
+        // Link data elements to deviceA
         HANDLE_ERROR(cudaMemcpy(&(deviceArray->_data), &d_data, sizeof(T *), cudaMemcpyHostToDevice));
 
         // Copy the data over.
