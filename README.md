@@ -20,7 +20,7 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - [x] Keep CMake and make files consistent with each other.
 - [x] Fill this out.
 - [x] SynapticDecay (SD) kernel.
-- [ ] Membrane Potential Layer (MPL) kernel.
+- [x] Membrane Potential Layer (MPL) kernel.
 - [ ] SynapticPlasticity (SP) kernel.
 - [ ] Spike Loop (SL) kernel.
 - [ ] Timestep (TS) kernel.
