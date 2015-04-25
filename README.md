@@ -40,27 +40,27 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 #Options and Flags
 The following options were ported from the original source.
 
-- `-A <int>` sets the numbers of trials before termination of the run (*default is 200000*)
-- `-B <int>` sets the number of training neurons (*default: 10*)
-- `-C <float>` sets the number of ms per trial (*default: 2000*)
-- `-c <double>` sets the decay rate of the synapses (*default: .999996*)
+- `-A <int>` (*default: 200000*) sets the numbers of trials before termination of the run 
+- `-B <int>` (*default: 10*) sets the number of training neurons 
+- `-C <float>` (*default: 2000*) sets the number of ms per trial 
+- `-c <double>` (*default: .999996*) sets the decay rate of the synapses 
 - `-D <int>` sets the max number of supersynapses a neuron may have
 - `-d` outputs various statistics after each trial for diagnostic purposes (i.e. spk count, avg volt, etc)
-- `-f <double>` sets the fraction of synapses initially active (*default: .1*)
+- `-f <double>` (*default: .1*) sets the fraction of synapses initially active 
 - `-g <float>` Sets GLTP
-- `-i <double>` sets the amplitude of the global inhibition (*default: .3*)
+- `-i <double>` (*default: .3*) sets the amplitude of the global inhibition 
 - `-j <float>` sets the inhibition delay
-- `-m <double>` sets the excitatory spontaneous frequency (*default: 40Hz*)
-- `-n <double>` sets the inhibitory spontaneous frequency (*default: 200Hz*)
-- `-o <double>` sets the amplitude of the spontaneous excitation (*default: 1*.3)
-- `-p <double>` sets the amplitude of the spontaneous inhibition (*default: .1*)
-- `-q <double>` sets the active syn threshold (*default: .2*)
-- `-r <double>` sets the super syn threshold (*default: .4*)
-- `-s <double>` sets the synapse maximum (*default: .6*)
+- `-m <double>` (*default: 40Hz*) sets the excitatory spontaneous frequency 
+- `-n <double>` (*default: 200Hz*) sets the inhibitory spontaneous frequency 
+- `-o <double>` (*default: 1.3*) sets the amplitude of the spontaneous excitation 
+- `-p <double>` (*default: .1*) sets the amplitude of the spontaneous inhibition 
+- `-q <double>` (*default: .2*) sets the active syn threshold 
+- `-r <double>` (*default: .4*) sets the super syn threshold 
+- `-s <double>` (*default: .6*) sets the synapse maximum 
 - `-u <double>` set maximum inhibitory synaptic strength
-- `-x <double>` sets spike rate of training excitation (*default: 1500 Hz*), input assumed to be in milliseconds.
-- `-y <double>` sets amplitude of training excitation (*default: .7*)
-- `-z <double>` sets the training excitation duration (*default: 8 ms*)
+- `-x <double>` (*default: 1500 Hz*) sets spike rate of training excitation , input assumed to be in milliseconds.
+- `-y <double>` (*default: .7*) sets amplitude of training excitation 
+- `-z <double>` (*default: 8 ms*) sets the training excitation duration 
 
 #Misc
 
