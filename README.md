@@ -25,8 +25,10 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - [ ] Spike Loop (SL) kernel.
 - [ ] Timestep (TS) kernel.
 - [ ] Add atomic operation safety.
-- [ ] Fix `run.py` (and/or make it useful)
+- [ ] Remove all traces of `./port/src/gpu/cudaTester.cu`
 - [ ] Finish the report.
+- [ ] Fix `run.py` (and/or make it useful)
+- [ ] Submit
 
 #Deliverables
 
