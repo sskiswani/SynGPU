@@ -42,3 +42,24 @@ Code exclusive to the GPU lives in the `port/src/gpu` folder.
 ```$ python3 run.py [-h] username password host [via-host]```~~ 
 
 Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
+
+#References
+[Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity](http://dx.plos.org/10.1371/journal.pone.0000723)
+Jun JK, Jin DZ (2007) Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity. PLoS ONE 2(8): e723. doi: 10.1371/journal.pone.0000723 
+
+```
+@article{10.1371/journal.pone.0000723,
+    author = {Jun, Joseph K. AND Jin, Dezhe Z.},
+    journal = {PLoS ONE},
+    publisher = {Public Library of Science},
+    title = {Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity},
+    year = {2007},
+    month = {08},
+    volume = {2},
+    url = {http://dx.plos.org/10.1371/journal.pone.0000723},
+    pages = {e723},
+    abstract = {<p>Temporally precise sequences of neuronal spikes that span hundreds of milliseconds are observed in many brain areas, including songbird premotor nucleus, cat visual cortex, and primary motor cortex. Synfire chains—networks in which groups of neurons are connected via excitatory synapses into a unidirectional chain—are thought to underlie the generation of such sequences. It is unknown, however, how synfire chains can form in local neural circuits, especially for long chains. Here, we show through computer simulation that long synfire chains can develop through spike-time dependent synaptic plasticity and axon remodeling—the pruning of prolific weak connections that follows the emergence of a finite number of strong connections. The formation process begins with a random network. A subset of neurons, called training neurons, intermittently receive superthreshold external input. Gradually, a synfire chain emerges through a recruiting process, in which neurons within the network connect to the tail of the chain started by the training neurons. The model is robust to varying parameters, as well as natural events like neuronal turnover and massive lesions. Our model suggests that long synfire chain can form during the development through self-organization, and axon remodeling, ubiquitous in developing neural circuits, is essential in the process.</p>},
+    number = {8},
+    doi = {10.1371/journal.pone.0000723}
+}
+```
