@@ -19,8 +19,8 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - [x] Write the CUDA loaders.
 - [x] Keep CMake and make files consistent with each other.
 - [x] Fill this out.
-- [x] SynapticDecay (SD) kernel.
-- [x] Membrane Potential Layer (MPL) kernel.
+- [x] SynapticDecay (SD) kernel. (see [syndecay](https://github.com/sskiswani/SynGPU/tree/syndecay) branch)
+- [x] Membrane Potential Layer (MPL) kernel (see [kern_mpl](https://github.com/sskiswani/SynGPU/tree/kern_mpl) branch).
 - [ ] SynapticPlasticity (SP) kernel.
 - [ ] Spike Loop (SL) kernel.
 - [ ] Timestep (TS) kernel.
@@ -62,8 +62,8 @@ The following options were ported from the original source.
 - `-n <double>` (*default: 200Hz*) sets the inhibitory spontaneous frequency 
 - `-o <double>` (*default: 1.3*) sets the amplitude of the spontaneous excitation 
 - `-p <double>` (*default: .1*) sets the amplitude of the spontaneous inhibition 
-- `-q <double>` (*default: .2*) sets the active syn threshold 
-- `-r <double>` (*default: .4*) sets the super syn threshold 
+- `-q <double>` (*default: .2*) sets the active synapse threshold 
+- `-r <double>` (*default: .4*) sets the super synapse threshold 
 - `-s <double>` (*default: .6*) sets the synapse maximum 
 - `-u <double>` set maximum inhibitory synaptic strength
 - `-x <double>` (*default: 1500 Hz*) sets spike rate of training excitation , input assumed to be in milliseconds.

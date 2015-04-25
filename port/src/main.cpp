@@ -4,12 +4,11 @@
 #include "synfire.h"
 
 int main( int argc, char *argv[] ) {
-    struct Timer timer;
-
-    // TODO: Command line arguments
+    SynfireParameters params(argc, argv);
+    Timer timer;
 
     timer.Start();
-    Synfire syn = Synfire::CreateSynfire();
+    Synfire syn(params);
     timer.Stop();
     std::cout << "Initialization time: " << US_TO_MS(timer.Duration()) << " ms." << std::endl;
 
