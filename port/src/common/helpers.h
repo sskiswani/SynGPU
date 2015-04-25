@@ -13,6 +13,10 @@
 template<typename T>
 class TArray2 {
   public:
+#ifdef __GPU_BUILD__
+    friend class CUSynfire;
+#endif
+
     // typedefs
     typedef T value_type;
     typedef value_type *iterator;

@@ -23,7 +23,7 @@ CUSynfire CreateCUSynfire( int nsize, double dt, int num_trials, int trial_time 
     parms.network_size = nsize;
     parms.timestep = dt;
     parms.trials = num_trials;
-    parms.trial_duration = trial_time;
+    parms.trial_duration = (double)trial_time;
     return CUSynfire(parms);
 }
 
@@ -353,25 +353,30 @@ void CUSynfire::DoSynapticDecay() {
 
 
     //~ Copy over synapse data.
-    Synapses *hsyn;
-    HANDLE_ERROR(cudaMallocHost((void**) &hsyn, sizeof(Synapses)));
-    HANDLE_ERROR(cudaMemcpy(hsyn, _dconnectivity, sizeof(Synapses), cudaMemcpyDeviceToHost));
+    Synapses hsyn;
+    HANDLE_ERROR(cudaMemcpy(&hsyn, _dconnectivity, sizeof(Synapses), cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(_connectivity._supcount, hsyn._supcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
+    HANDLE_ERROR(cudaMemcpy(_connectivity._actcount, hsyn._actcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
 
-    HANDLE_ERROR(cudaMemcpy(_connectivity._supcount, hsyn->_supcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
-    HANDLE_ERROR(cudaMemcpy(_connectivity._actcount, hsyn->_actcount, sizeof(int) * network_size, cudaMemcpyDeviceToHost));
+    printf("hsyn has size of %i\n", hsyn._size);
+
     printf("********** Syncing Synaptic Decay Kernel TArrays **********\n");
+    printf("hsyn has G with cols,rows = %i, %i\n", hsyn._G.Columns(), hsyn._G.Rows());
 
-    TArray2<double> hG_ptr;
-    HANDLE_ERROR(cudaMemcpy(&hG_ptr, &(hsyn->_G), sizeof(TArray2<double>), cudaMemcpyDeviceToHost));
-    _connectivity._G.CopyFromDevice(hG_ptr);
+    HANDLE_ERROR(cudaMemcpy(_connectivity._G._data,
+                            hsyn._G._data,
+                            sizeof(double) * (_connectivity._G._rows * _connectivity._G._cols),
+                            cudaMemcpyDeviceToHost));
 
-//    TArray2<bool> *hsupsyn;
-//    HANDLE_ERROR(cudaMemcpy(&hsupsyn, &(hsyn->_supsyn), sizeof(TArray2<bool>), cudaMemcpyDeviceToHost));
-//    _connectivity._supsyn.CopyFromDevice(hsupsyn);
+    HANDLE_ERROR(cudaMemcpy(_connectivity._supsyn._data,
+                            hsyn._supsyn._data,
+                            sizeof(bool) * (_connectivity._supsyn._rows * _connectivity._supsyn._cols),
+                            cudaMemcpyDeviceToHost));
 
-//    TArray2<bool> *hactsyn;
-//    HANDLE_ERROR(cudaMemcpy(&hactsyn, &(hsyn->_actsyn), sizeof(TArray2<bool>), cudaMemcpyDeviceToHost));
-//    _connectivity._actsyn.CopyFromDevice(hactsyn);
+    HANDLE_ERROR(cudaMemcpy(_connectivity._actsyn._data,
+                            hsyn._actsyn._data,
+                            sizeof(bool) * (_connectivity._supsyn._rows * _connectivity._supsyn._cols),
+                            cudaMemcpyDeviceToHost));
 
     // End timers
     float elapsedTime;
@@ -408,14 +413,14 @@ Synapses *CUSynfire::CreateDeviceSynapses( Synapses *syn ) {
     HANDLE_ERROR(cudaMemcpy(_dactcount, syn->_actcount, sizeof(int) * network_size, cudaMemcpyHostToDevice));
     HANDLE_ERROR(cudaMemcpy(_dNSS, syn->_NSS, sizeof(int) * network_size, cudaMemcpyHostToDevice));
 
-    TArray2<double> *_dG;
+    TArray2<double> *_dG = syn->_G.CopyToDevice();
     TArray2<bool> *_dactsyn, *_dsupsyn;
     _dactsyn = syn->_actsyn.CopyToDevice();
     _dsupsyn = syn->_supsyn.CopyToDevice();
 
-    HANDLE_ERROR(cudaMemcpy(&(dsyn->_G), &_dG, sizeof(TArray2<double> *), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(&(dsyn->_actsyn), &_dactsyn, sizeof(TArray2<bool> *), cudaMemcpyHostToDevice));
-    HANDLE_ERROR(cudaMemcpy(&(dsyn->_supsyn), &_dsupsyn, sizeof(TArray2<bool> *), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_G), _dG, sizeof(TArray2<double>), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_actsyn), _dactsyn, sizeof(TArray2<bool>), cudaMemcpyHostToDevice));
+    HANDLE_ERROR(cudaMemcpy(&(dsyn->_supsyn), _dsupsyn, sizeof(TArray2<bool>), cudaMemcpyHostToDevice));
 
     return dsyn;
 }
