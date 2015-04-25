@@ -34,7 +34,7 @@ CXXFLAGS = -std=c++0x
 # Find all source files in the source directory, sorted by most
 # recently modified
 CPP_SOURCES := $(shell find . -path ./src/gpu -prune -o -name '*.cpp' -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
-GPU_SOURCES := $(shell find . \( -name '*.cpp' -or -name '*.cu' \) -and -not \( -name "main.cpp" -or -name "synapses.*" -or -name "cudaTester.cu" \) -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
+GPU_SOURCES := $(shell find . \( -name '*.cpp' -or -name '*.cu' \) -and -not \( -name "main.cpp" -or -name "synapses.*" -or -name "neuron.*" -or -name "cudaTester.cu" \) -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 
 # Add additional include paths
 INCLUDES := $(shell find . -name '*.h' -printf '-I%h\n' | sort -u)

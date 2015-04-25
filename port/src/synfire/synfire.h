@@ -16,7 +16,7 @@ class Synfire {
 
     static Synfire CreateSynfire( int nsize );
 
-    static Synfire CreateSynfire( int nsize, double dt, int num_trials, int trial_time );
+    static Synfire CreateSynfire( int nsize, double dt, int num_trials, double trial_time  );
 
     //~ CTOR
     Synfire( SynfireParameters );

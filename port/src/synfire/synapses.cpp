@@ -259,7 +259,7 @@ void Synapses::SynapticDecay() {
 }
 
 CUDA_CALLABLE
-double Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr ) {
+int Synapses::GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr ) {
     if (syn_type == 'a') {
         post_arr = _actsyn.row(pre);
         return _actcount[pre];

@@ -22,7 +22,7 @@ class CUSynfire {
 
     static CUSynfire CreateCUSynfire( int nsize );
 
-    static CUSynfire CreateCUSynfire( int nsize, double dt, int num_trials, int trial_time );
+    static CUSynfire CreateCUSynfire( int nsize, double dt, int num_trials, double trial_time );
 
     //~ CTOR
     CUSynfire( SynfireParameters );

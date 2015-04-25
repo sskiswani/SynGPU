@@ -4,7 +4,7 @@
 #include "random.h"
 #include "utility.h"
 #include "helpers.h"
-#include "neuron.h"
+#include "neuron.cpp"
 #include "synapses.cpp"
 #include "cuda_utils.h"
 #include "microtime.h"
@@ -20,12 +20,12 @@ CUSynfire CUSynfire::CreateCUSynfire( int nsize ) {
     return CUSynfire(parms);
 }
 
-CUSynfire CUSynfire::CreateCUSynfire( int nsize, double dt, int num_trials, int trial_time ) {
+CUSynfire CUSynfire::CreateCUSynfire( int nsize, double dt, int num_trials, double trial_time ) {
     struct SynfireParameters parms;
     parms.network_size = nsize;
     parms.timestep = dt;
     parms.trials = num_trials;
-    parms.trial_duration = (double) trial_time;
+    parms.trial_duration = trial_time;
     return CUSynfire(parms);
 }
 
@@ -34,7 +34,7 @@ CUSynfire::CUSynfire( SynfireParameters params )
           INV_DT(1 / DT),
           trials(params.timestep),
           trial_duration(params.trial_duration),
-          trial_steps((int) (trial_duration * INV_DT)),
+          trial_steps(trial_duration * INV_DT),
           network_size(params.network_size),
           _connectivity(params.frac,
                         0.0,
@@ -578,7 +578,7 @@ __global__
 void MembranePotentialKernel( const float dt, Neuron *net, const int net_size, bool *whospiked, float *dranCache ) {
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
     if(tid < net_size) {
-        whospiked[i] = net[i].Update(dt, dranCache[tid], dranCache[tid + 1], dranCache[tid + 2], dranCache[tid + 3]);
+        whospiked[tid] = net[tid].Update(dt, dranCache[tid], dranCache[tid + 1], dranCache[tid + 2], dranCache[tid + 3]);
     }
 
 }

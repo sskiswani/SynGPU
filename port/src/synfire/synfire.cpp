@@ -16,7 +16,7 @@ Synfire Synfire::CreateSynfire( int nsize ) {
     return Synfire(parms);
 }
 
-Synfire Synfire::CreateSynfire( int nsize, double dt, int num_trials, int trial_time ) {
+Synfire Synfire::CreateSynfire( int nsize, double dt, int num_trials, double trial_time ) {
     struct SynfireParameters parms;
     parms.network_size = nsize;
     parms.timestep = dt;
@@ -316,7 +316,7 @@ void Synfire::DoSpikeLoop() {
         // L1348: Emit spikes
         // Check to see if spiking neuron is saturated
         if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
-            int j_nss = _connectivity.GetNSS(spiker); // TODO: Figure out NSS indexing with send_to.
+            double j_nss = _connectivity.GetNSS(spiker); // TODO: Figure out NSS indexing with send_to.
 
             for (int post = 0, j = 0; post < network_size && j < j_nss; ++post) {
                 if (send_to[post] == false) continue;

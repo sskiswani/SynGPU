@@ -1,6 +1,8 @@
 #ifndef PORT_NEURON_H
 #define PORT_NEURON_H
 
+#include "synfire_constants.h"
+
 #ifdef __GPU_BUILD__
 
 #include "cuda_utils.h"
@@ -27,14 +29,13 @@ class Neuron {
 
     ~Neuron();
 
-
-    CUDA_CALLABLE bool Update( float dt );
+    bool Update( float dt );
 
     CUDA_CALLABLE bool Update( float dt, float r1, float r2, float r3, float r4 );
 
     CUDA_CALLABLE void neur_dyn( double dt, bool no_volt );
 
-    CUDA_CALLABLE void Reset();
+    void Reset();
 
     CUDA_CALLABLE void ExciteInhibit( double amp, char p );
 
@@ -54,15 +55,15 @@ class Neuron {
     CUDA_CALLABLE INLINE double Inhibitory() { return _ginh; }
 
   private:
-    CUDA_CALLABLE void Initialize( int label,
-                                   double exc_freq,
-                                   double inh_freq,
-                                   double exc_amp,
-                                   double inh_amp,
-                                   double global_inhibition,
-                                   double leak );
+    void Initialize( int label,
+                     double exc_freq,
+                     double inh_freq,
+                     double exc_amp,
+                     double inh_amp,
+                     double global_inhibition,
+                     double leak );
 
-    CUDA_CALLABLE INLINE void SetSpinFrequency( double excitory, double inhibitory ) {
+    INLINE void SetSpinFrequency( double excitory, double inhibitory ) {
         _spfreq_ex = excitory * 0.001;
         _spfreq_in = inhibitory * 0.001;
     }
@@ -81,29 +82,6 @@ class Neuron {
     //  _cRef - refactory period 25 ms
     //  _cLatent - LTD (longterm depression) 20 ms
     int _cLatent, _cRef;   // Latent and refractory counters.
-
-
-    //"""""""""""""""""""""""""""""""""""""""""""""""""
-    //~ CONSTANTS
-    // Integrate and Fire model parameters. (in ms)
-    const static double DECAY_INHIBITORY;        // Inhibitory Decay
-    const static double DECAY_EXCITORY;          // Excitory Decay
-    const static double DECAY_MEMBRANE;          // Membrane Decay
-    const static double SPIKE_THRESHOLD;         // Spike threshold (mV)
-    const static double RESET;                   // Membrane reset potential (mV)
-    const static double INHIBITORY_REVERSAL;     // potential (mV)
-    const static double REFCTORY_TIME;           // ms
-    const static double LATENCY_TIME;            // ms
-
-    // Spontaneous activity defaults.
-    const static double
-            DEFAULT_EXFREQ,
-            DEFAULT_INFREQ,
-            DEFAULT_EXAMP,
-            DEFAULT_INAMP,
-            DEFAULT_GLOBAL_I,
-            DEFAULT_INHDECAY,
-            DEFAULT_LEAK;
 
     static int _LABEL_COUNTER;
 };

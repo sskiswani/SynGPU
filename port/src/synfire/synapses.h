@@ -97,12 +97,12 @@ class Synapses {
 
     void SynapticDecay();
 
-    CUDA_CALLABLE double GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
+    CUDA_CALLABLE int GetPostSynapticLabel( char syn_type, int pre, bool *&post_arr );
 
     // Accessors
     int CountSynapses( char syn_type );
 
-    CUDA_CALLABLE INLINE double GetNSS( int label ) { return _NSS[label]; }
+    CUDA_CALLABLE INLINE int GetNSS( int label ) { return _NSS[label]; }
 
 //    inline double GetSynapticStrength( int pre, int post ) { return _G[pre * _size + post]; }
 
