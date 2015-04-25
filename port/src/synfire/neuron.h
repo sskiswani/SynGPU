@@ -1,7 +1,8 @@
 #ifndef PORT_NEURON_H
 #define PORT_NEURON_H
 
-#ifdef __CUDACC__
+#ifdef __GPU_BUILD__
+#include "cuda_utils.h"
 #define CUDA_CALLABLE __host__ __device__
 #else
 #define CUDA_CALLABLE

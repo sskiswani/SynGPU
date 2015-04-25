@@ -16,7 +16,6 @@ class Synapses {
 #ifdef __GPU_BUILD__
     friend class CUSynfire;
 #endif
-
     Synapses( double fract_act,
               double glob,
               double act_thres,

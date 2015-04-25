@@ -4,10 +4,7 @@
 #include <stdlib.h>
 
 #ifdef __GPU_BUILD__
-
-#include <stdio.h>
 #include "cuda_utils.h"
-
 #define CUDA_CALLABLE __host__ __device__
 #else
 #define CUDA_CALLABLE
@@ -31,21 +28,19 @@ class TArray2 {
     }
 
 #ifdef __GPU_BUILD__
-
     TArray2<T> *CopyToDevice() {
-        // Copy the TArray to the device.
-        fprintf(stderr, "Copy class instance (%i,%i)..\n", _rows, _cols);
         TArray2<T> *deviceArray;
+        T *d_data;
+
+        // Copy the TArray to the device.
         HANDLE_ERROR(cudaMalloc(&deviceArray, sizeof(TArray2<T>)));
         HANDLE_ERROR(cudaMemcpy(deviceArray, this, sizeof(TArray2<T>), cudaMemcpyHostToDevice));
 
         // Copy the elements array to the device.
-        fprintf(stderr, "Allocate d_data elements..\n");
-        T *d_data;
         HANDLE_ERROR(cudaMalloc((void **) &(d_data), sizeof(T) * (_rows * _cols)));
         HANDLE_ERROR(cudaMemcpy(&(deviceArray->_data), &d_data, sizeof(T *), cudaMemcpyHostToDevice));
 
-        fprintf(stderr, "Copy over _data...\n");
+        // Copy the data over.
         HANDLE_ERROR(cudaMemcpy(d_data, _data, sizeof(T) * (_rows * _cols), cudaMemcpyHostToDevice));
 
         return deviceArray;
