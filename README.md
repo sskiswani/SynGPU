@@ -37,7 +37,16 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - This README file.
 - `run.py`
 
-#Options and Flags
+#Misc
+
+Code exclusive to the GPU lives in the `port/src/gpu` folder.
+
+~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies.
+```$ python3 run.py [-h] username password host [via-host]```~~ 
+
+Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
+
+##Options and Flags
 The following options were ported from the original source.
 
 - `-A <int>` (*default: 200000*) sets the numbers of trials before termination of the run 
@@ -61,15 +70,6 @@ The following options were ported from the original source.
 - `-x <double>` (*default: 1500 Hz*) sets spike rate of training excitation , input assumed to be in milliseconds.
 - `-y <double>` (*default: .7*) sets amplitude of training excitation 
 - `-z <double>` (*default: 8 ms*) sets the training excitation duration 
-
-#Misc
-
-Code exclusive to the GPU lives in the `port/src/gpu` folder.
-
-~~`run.py` can be used to streamline usage, with the default execution pushing, compiling, and executing the source code. Although, it may not work universally due library dependencies.
-```$ python3 run.py [-h] username password host [via-host]```~~ 
-
-Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
 
 #References
 
