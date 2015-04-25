@@ -26,7 +26,7 @@ SRC_PATH = .
 DESTDIR = .
 
 # General compiler flags
-CXX := g++
+CXX := g++44
 
 # COMPILE_FLAGS = -std=c++11 -Wall -Wextra -g
 CXXFLAGS = -std=c++0x
@@ -34,7 +34,7 @@ CXXFLAGS = -std=c++0x
 # Find all source files in the source directory, sorted by most
 # recently modified
 CPP_SOURCES := $(shell find . -path ./src/gpu -prune -o -name '*.cpp' -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
-GPU_SOURCES := $(shell find . (-name '*.cpp' -or -name '*.cu') ! -name "main.cpp" -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
+GPU_SOURCES := $(shell find . \( -name '*.cpp' -or -name '*.cu' \) -and -not -name "main.cpp" -printf '%T@\t%p\n' | sort -k 1nr | cut -f2-)
 
 # Add additional include paths
 INCLUDES := $(shell find . -name '*.h' -printf '-I%h\n' | sort -u)
@@ -42,6 +42,7 @@ INCLUDES := $(shell find . -name '*.h' -printf '-I%h\n' | sort -u)
 # Set the object file names, with the source directory stripped
 # from the path, and the build path prepended in its place
 OBJECTS = $(CPP_SOURCES:$(SRC_PATH)/%.$(SRC_EXT)=%.o)
+GPU_OBJECTS = $(GPU_SOURCES:$(SRC_PATH)/%.$(SRC_EXT)=%.o)
 
 # Set the dependency files that will be used to add header dependencies
 DEPS = $(OBJECTS:.o=.d)
@@ -58,9 +59,8 @@ print-%: ; @echo $*=$($*)
 cu_test: src/gpu/cudaTester.cu
 	$(NVCC) $(NVCCINCLUDES) $(INCLUDES) -D__GPU_BUILD__=1 $(NVCCFLAGS) $^ -o $@
 
-cu_synfire: $(OBJECTS)
+cu_synfire: $(GPU_OBJECTS)
 	$(NVCC) $(NVCCINCLUDES) $(INCLUDES) -D__GPU_BUILD__=1 $(NVCCFLAGS) $^ -o $@
-
 
 #### GENERIC COMPILATION RULES
 $(BIN_NAME): $(OBJECTS)

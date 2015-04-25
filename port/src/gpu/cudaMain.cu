@@ -13,6 +13,8 @@
 
 
 int main(int argc, char *argv[]) {
+    std::cout << "Welcome to SynfireGrowth powered by NVIDIA - CUDA.\n" << std::endl;
+
     //~ Prepare device.
     cudaDeviceProp prop;
     int whichDevice;

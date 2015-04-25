@@ -31,6 +31,9 @@ class Neuron {
         if (code == 'e') return _gexc;
         else if (code == 'i') return _ginh;
         else if (code == 'v') return _volts;
+
+        // Error.
+        return 0.0;
     }
 
     CUDA_CALLABLE inline double Volts() { return _volts; }
