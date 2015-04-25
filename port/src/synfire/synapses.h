@@ -14,9 +14,7 @@ class Neuron;
 class Synapses {
   public:
 #ifdef __GPU_BUILD__
-
     friend class CUSynfire;
-
 #endif
 
     Synapses( double fract_act,

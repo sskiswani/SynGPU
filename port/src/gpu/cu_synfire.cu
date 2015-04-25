@@ -143,7 +143,8 @@ void CUSynfire::Run() {
 
         tSynDecay[0] = microtime();
         if (_params.plasticity) { // L1408: Synapses decay after each trial.
-            _connectivity.SynapticDecay();
+//            _connectivity.SynapticDecay();
+            DoSynapticDecay();
         }
         tSynDecay[1] = microtime();
 
@@ -329,6 +330,29 @@ double CUSynfire::GetAverageVoltage() {
     }
 
     return (avg / network_size);
+}
+
+
+void CUSynfire::DoSynapticDecay() {
+    int numThreads = 256;
+    int numBlocks = network_size / numThreads;
+    if (network_size % numThreads == 0) ++numBlocks;
+
+    // start timers
+    cudaEvent_t start, stop;
+    HANDLE_ERROR(cudaEventCreate(&start));
+    HANDLE_ERROR(cudaEventCreate(&stop));
+    HANDLE_ERROR(cudaEventRecord(start, 0));
+
+    SynapticDecayKernel <<< numBlocks, numThreads >>> (_dconnectivity, network_size);
+
+    // End timers
+    float elapsedTime;
+    HANDLE_ERROR(cudaEventRecord(stop, 0));
+    HANDLE_ERROR(cudaEventSynchronize(stop));
+    HANDLE_ERROR(cudaEventElapsedTime(&elapsedTime, start, stop));
+    printf("Time taken:  %3.1f ms\n", elapsedTime);
+
 }
 
 #pragma clang diagnostic push

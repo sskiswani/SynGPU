@@ -13,7 +13,7 @@ NVCCLIBS := -L/usr/local/cuda/lib64  -lGL -lcudart
 ### PROJECT SETTINGS
 # The name of the executable to be created
 BIN_NAME := synfire
-GPU_BIN_NAME := cusynfire
+GPU_BIN_NAME := cu_synfire
 TEST_BIN_NAME := cu_test
 
 # Extension of source files used in the project
@@ -58,11 +58,9 @@ print-%: ; @echo $*=$($*)
 cu_test: src/gpu/cudaTester.cu
 	$(NVCC) $(NVCCINCLUDES) $(INCLUDES) -D__GPU_BUILD__=1 $(NVCCFLAGS) $^ -o $@
 
-# syn_gpu: $(GPU_PATH)cudaMain.cu microtime.o CUSynfire.o neuron.o synapses.o microtime.o random.o
-	# $(NVCC) $(NVCCINCLUDES) $(CXXINCLUDES) $(NVCCFLAGS) $^ -o $@
+cu_synfire: $(OBJECTS)
+	$(NVCC) $(NVCCINCLUDES) $(INCLUDES) -D__GPU_BUILD__=1 $(NVCCFLAGS) $^ -o $@
 
-# CUSynfire.o: $(CMN_PATH)microtime.h $(GPU_PATH)CUSynfire.h $(GPU_PATH)CUSynfire.cpp
-	# $(NVCC) $(CXXINCLUDES) $(CXXINCLUDES) -c $(GPU_PATH)CUSynfire.cpp
 
 #### GENERIC COMPILATION RULES
 $(BIN_NAME): $(OBJECTS)
