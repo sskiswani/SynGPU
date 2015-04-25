@@ -165,6 +165,21 @@ void CUSynfire::Run() {
             std::cout << "\tSpikes: " << _spikeCounter << std::endl;
             std::cout << "\tAvg. Volts: " << avg_volts << std::endl;
             std::cout << "\tActive Connections: " << _connectivity.CountSynapses('a') << std::endl;
+
+            // Do error checking.
+            bool *send_to;
+            int send_count, act_count;
+            for(int i = 0; i < network_size; ++i) {
+                send_count = _connectivity.GetPostSynapticLabel('a', i, send_to);
+                act_count = 0;
+                for(int j = 0; j < network_size; ++j) {
+                    if(send_to[j] == true) ++act_count;
+                }
+
+                if(act_count != send_count) {
+                    std::cout << "Neuron[" << i << "] reports " << send_count << " connections but actually has " << act_count << " connections." << std::endl;
+                }
+            }
         }
 
         // Reset neuron values for next trial
@@ -201,6 +216,15 @@ void CUSynfire::Run() {
     " Avg Decay: " << US_TO_MS(avgSD / 10) << std::endl;
 }
 
+/**
+ * Runs a single SynfireGrowth trial.
+ *
+ * @param tT   The timing for the current trial.
+ * @param tTS  The timing for an individual trial step.
+ * @param tMPL The timing for Membrane Potential Layer, e.g. [start, end, delta]. (?)
+ * @param tSL  The timing for the Spike loop, e.g. [start, end, delta]. (?)
+ * @param tTSa The timing across all trial steps.
+ */
 double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkLp, double *tTSa ) {
     // ref: L1235.
     tT[0] = microtime();
@@ -263,7 +287,6 @@ double CUSynfire::RunTrial( double *tT, double *tTS, double *tMPL, double *tSpkL
 
         //---------------------------------
         // Inhibition
-//        LOG("Inhibition Stage")
         inh[dsteps - 1] = _whospiked.size();
         for (std::vector<int>::iterator itr = _whospiked.begin(); itr != _whospiked.end(); ++itr) {
             for (int j = 0; j < network_size; ++j) {
@@ -292,7 +315,7 @@ void CUSynfire::DoSpikeLoop() {
     int spiker;
     row_t spk_hist; // Neuron's spike history data.
     bool *send_to;  // pointer to array containing post neurons.
-    int send_count; // number of post neurons receiving spike.
+    int send_count;
 
     for (std::vector<int>::iterator itr = _whospiked.begin(); itr != _whospiked.end(); ++itr) {
         spiker = (*itr);
@@ -306,18 +329,20 @@ void CUSynfire::DoSpikeLoop() {
         // L1348: Emit spikes
         // Check to see if spiking neuron is saturated
         if (_connectivity.GetPostSynapticLabel('s', spiker, send_to) == _connectivity.GetNSS(spiker)) {
-            int j_nss = _connectivity.GetNSS(spiker);
+            int j_nss = _connectivity.GetNSS(spiker); // TODO: Figure out NSS indexing with send_to.
 
-            // TODO: can't just loop over send_to anymore.
-            for (int k = 0; k < j_nss; ++k) { // Send spikes along super synapses
-                _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+            for(int post = 0, j = 0; post < network_size && j < j_nss; ++post) {
+                if(send_to[post] == false) continue;
+                _network[post].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, post), 'e');
+                ++j;
             }
         } else { // Spiking neuron isn't saturated, send spikes along active connections
             send_count = _connectivity.GetPostSynapticLabel('a', spiker, send_to);
 
-            // TODO: can't just loop over send_to anymore.
-            for (int k = 0; k < send_count; k++) {
-                _network[send_to[k]].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, send_to[k]), 'e');
+            for (int post = 0, j = 0; post < network_size && j < send_count; post++) {
+                if(send_to[post] == false) continue;
+                _network[post].ExciteInhibit(_connectivity.GetSynapticStrength(spiker, post), 'e');
+                ++j;
             }
         }
 
