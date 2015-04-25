@@ -45,6 +45,7 @@ Arguments saved in a text file can be referenced by prefixing the filename with 
 
 #References
 [Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity](http://dx.plos.org/10.1371/journal.pone.0000723)
+
 Jun JK, Jin DZ (2007) Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity. PLoS ONE 2(8): e723. doi: 10.1371/journal.pone.0000723 
 
 ```
