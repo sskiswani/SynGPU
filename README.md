@@ -44,7 +44,8 @@ Code exclusive to the GPU lives in the `port/src/gpu` folder.
 Arguments saved in a text file can be referenced by prefixing the filename with an `@` symbol, e.g. `python3 run.py @args.txt`.
 
 #References
-[Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity](http://dx.plos.org/10.1371/journal.pone.0000723) Jun, Joseph K. AND Jin, Dezhe Z. (2007).
+
+Jun, Joseph K. AND Jin, Dezhe Z. [Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity](http://dx.plos.org/10.1371/journal.pone.0000723) (2007)
 
 ```
 @article{10.1371/journal.pone.0000723,
