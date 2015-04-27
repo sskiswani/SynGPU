@@ -52,16 +52,9 @@ There are generally two families of algorithms for the simulation of neural netw
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Previous Work}
-\todo{requires a clean-up and a couple of revisions to fit the tone of the paper. Include a paragraph on the synfire paper.}%
-%%%% NOTES FROM PROPOSAL (rephrase and fit into something acceptable)
-% Analysis of neural spikes on the GPU, as detailed by \cite{accel}, is primarily achieved through two general models: the Hodgkin-Huxley (HH) and Izhikevich models. These models can be used to implement and analyze character recognition networks which are based on the aforementioned models. The results of \cite{accel} imply that the Izhikevich model has fewer computations than the HH model (13 flops as opposed to 246 flops per neuron update).
-% There is evidence in \cite{accel} that parallel implementations of the models have achieved speedups greater than 110 times on the GPU compared to the 2.66GHz Intel Core 2 Quad. The paper goes into background/history of Spiking Neural Models within the last 50 years.
-% It then goes into the specifics of each of the simulations, which helps us in how we might go about doing our own simulations. Overall this is a great paper to give us a good understanding on where GPU computing stands within neural spikes.
-%%%%
-
 Despite the group's lack of domain knowledge regarding neural networks, the work of \cite{accel} provided the initial foundation and direction for our work. The comparisons of the Hodgkin-Huxel (HH) and Izhikevich models of neural networks provided by \cite{accel} was a significant aide in deciding which model to use for our simulation. In addition to their analysis, \cite{accel} provides evidence for parallel implementations on the GPU that achieve speedups of greater than 110 times their corresponding CPU implementations. Though we could not reproduce a speedup of their magnitude, it gave our work its initial direction. \todo{be more specific about how \cite{accel} served as a foundation for the project. as it stands it seems out of place and kinda useless. also phrasing is awkward.}
 
-The model we chose to implement on the GPU was one developed and detailed by \cite{synfire}, suggested by an informal advisor for this project.\todo{expand on model of \cite{synfire}. give reasons why it was chosen}
+The model we chose to implement on the GPU was one developed and detailed by \cite{synfire}, suggested by an informal advisor for this project.
 
 In addition to developing the simulation model, it was also implemented by \cite{synfire}. By using their implementation as our foundation, we were able to run a faithful representation of their work on the GPU which provides a convenient metric for the efficacy of our work.\todo{clean up. elaborate on implementation maybe?}
 
@@ -123,8 +116,6 @@ The original implementation of Neur\_Dyn function utilized four arrays, all of s
 
 To reduce global memory access, we utilized three local registers to temporarily hold the membrane potential and conductance's and 3 local registers, in place of the arrays, each holding an object of type double, to store the results of each progression. After each progression, the temporary voltages and conductance's are updated. By replacing the arrays with single variables, we had accessed global memory only 3 times. We also eliminated the instance of thread divergence by utilizing the additive identity of the spike voltage. While this required 8 extra floating point operations, the performance benefits of parallel execution, across all threads, far exceeds the extra overhead. 
  
-
-
 \subsubsection{Optimization 2}
 
 \begin{algorithm}[H]
@@ -155,7 +146,6 @@ To reduce global memory access, we utilized three local registers to temporarily
 \ElsIf{$pd\_type = Depression$}
 	\State $\textsc{Deactivate}(syn\_type, idx)$
 \EndIf
-
 \end{algorithmic}
 \end{algorithm}
 
@@ -172,6 +162,7 @@ To reduce global memory access, we utilized three local registers to temporarily
 \EndIf
 \end{algorithmic}
 \end{algorithm}
+
 The Synaptic Decay function required the most time to execute and produced the most overhead per function call. This model we had used required, per trial, the signaling of an inhibitory response through all active and super synaptic connections. This was executed by reducing each synaptic strength measurement with a constant synaptic decay factor. During this process, if the decayed, synaptic strength of each connection failed to exceed the corresponding active or super synaptic threshold, the connection to the post synaptic neuron would be trimmed, and no longer present in either the active or super synaptic network.
 
 The original implementation created two, two-dimensional int arrays, composed of heap memory, to host the post-neuron index of the corresponding active or super synaptic connection. Moreover, the rows corresponded to the index of the pre-neuron, while the column was a pointer to an array of post neurons. When an active or super synaptic connection needed to be trimmed and eliminated from the corresponding network, the program required the allocation of a new array, to house the smaller array of connections, the transfer of elements from the old to the newly allocated array, and the deallocation of the obsolete, heap memory. The constant allocation and deallocation for each active and super synaptic array, per neuron resulted in much overhead. Naturally, since the number of the active and super synaptic structures, for each neuron is different, the implementation is ideally, not suited for execution on the GPU. 
