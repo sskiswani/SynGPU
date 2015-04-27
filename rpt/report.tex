@@ -114,7 +114,6 @@ To reduce global memory access, we utilized three local registers to temporarily
 	\State $\textsc{CheckThreshold}(syn\_str, idx, syn\_type, pd_type)$
 	\State $\textsc{Reduce Synaptic Strength}$
 \EndFor
-\State $\textsc{SynapticDecay}()$
 \end{algorithmic}
 \end{algorithm}
 
@@ -124,11 +123,11 @@ To reduce global memory access, we utilized three local registers to temporarily
 \begin{algorithmic}
 \If{$syn\_type =$ Active}
 	\State $\textsc{Set Active threshold}$
-\ElsIf{$syn\_type = Super$}
+\ElsIf{$syn\_type =$ Super}
 	\State $\textsc{Set Super threshold}$
 \EndIf
 
-\If{$pd_type =$ Potentiation}
+\If{$pd\_type =$ Potentiation}
 	\State $\textsc{Activate}(syn\_type, idx)$
 \ElsIf{$pd\_type = Depression$}
 	\State $\textsc{Deactivate}(syn\_type, idx)$
