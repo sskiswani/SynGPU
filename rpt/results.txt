@@ -17,3 +17,14 @@ Avg Trial: 6229.88 Avg TrialStep: 1.8158 Avg Decay: 54.498
 
 Size 2000
 Avg Trial: 12882.5 Avg TrialStep: 4.0953 Avg Decay: 221.906
+
+
+Original
+Size 200
+Avg Trial: 696117 Avg TrialStep: 249.4 Avg Decay: 924.7
+
+Size 1000
+Avg Trial: 3.46972e+06 Avg TrialStep: 966.5 Avg Decay: 19755.2
+
+Size 2000
+Avg Trial: 7.01102e+06 Avg TrialStep: 1885.5 Avg Decay: 78425.2
