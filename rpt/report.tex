@@ -92,6 +92,19 @@ The CPU code was not as performant as it could've been, and the rewrite resulted
 
 With dedicated memory buffers, the dependencies between phases could be established and the bandwidth between the host and device could be minimized by excluding unnecessary memory transfers.
 
+\begin{center}
+\begin{tabular}{ | c | c | c | c | }
+	%\hline
+	\multicolumn{4}{ c }{\it Improved Synaptic Decay: 10 Trials}\\
+	\hline
+	{\bf Network Size} & {\bf Trial Average} & {\bf Avg. Timestep} & {\bf Total Runtime} \\
+	\hline
+	200 & 1824.62 ms & 0.511 ms & 19793.9 ms\\
+	1000 & 8242.2 ms & 1.984 ms & 90524.3 ms\\
+	2000 & 17908.5 ms & 4.5725 ms & 195553 ms\\
+	\hline
+\end{tabular}
+\end{center}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
