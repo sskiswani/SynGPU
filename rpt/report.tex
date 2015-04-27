@@ -54,11 +54,13 @@ The model we chose to implement on the GPU was one developed and detailed by \ci
 
 In addition to developing the simulation model, it was also implemented by \cite{synfire}. By using their implementation as our foundation, we were able to run a faithful representation of their work on the GPU which provides a convenient metric for the efficacy of our work.
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Implementation Details}
+
+The default runtime behavior is to run $10$ different trials on the network using the same training neurons and different seeds. Each trial performs all of the same work, and the process is described below.
+
+In essence, a trial consists of integrating the network over some $dt$, which involves updating the membrane potential layer, propagating spikes along the network and applying global inhibitation to the entire network. Trials conclude with the strength of each synapse decaying at a slow rate. This process is detailed by \cite{synfire}, and our implementation follows as faithfully as possible.
 
 \begin{algorithm}[H]
 \caption{Synfire Growth Trial}
