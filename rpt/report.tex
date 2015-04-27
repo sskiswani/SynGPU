@@ -90,7 +90,7 @@ $$\tau_m\frac{dV_m(t)}{dt} = (E_l - V_m) - g_{exc}(t)V_m(t)+g_{inh}(t)(E_{inh}-V
 Where $\tau_m = 20$ms is the membrane time constant; $V_m$ is the membrane potential in millivolts, $E_l = -85$mV is the leak reversal potential; $g_{exc}(t)$ is the exictatory conductance due to all excitatory synapses; $g_{inh}(t)$ is the inhibitory conductance from all inhibitory synapses; $E_{inh} = -75$mV is the reversal potential of the inhibitory synapses. 
 
 
-Another significant runtime calculation involved calculating the synaptic decay after each trial.
+Another significant runtime calculation involved calculating the synaptic decay after each trial, which involves an iteration over every synapse in the network (which is of size $O(n^2)$) and applying an expontential decay to the strength of the synapse.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
