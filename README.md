@@ -21,7 +21,7 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - [x] Fill this out.
 - [x] SynapticDecay (SD) kernel. (see [syndecay](https://github.com/sskiswani/SynGPU/tree/syndecay) branch)
 - [x] Membrane Potential Layer (MPL) kernel (see [kern_mpl](https://github.com/sskiswani/SynGPU/tree/kern_mpl) branch).
-- [ ] Submit
+- [x] Submit
 
 #Deliverables
 
