@@ -136,6 +136,8 @@ With dedicated memory buffers, the dependencies between phases could be establis
 
 Given the heavy runtime cost associated with integrating the membrane potential layer and calculating the synaptic decay of the network, they stood out as the things that should be ported to the GPU. 
 
+The most significant difficulty in a parallel implementation of the SynfireGrowth was a constraint on random number generation. We chose to remain faithful to the original implementation in providing deterministic evolution of the network, which requires that the occurence of spontaneous activity needed to be deterministic. Our solution was to generate the sequence of numbers each neuron would need on the CPU, and then copying over this sequence to the GPU when required. Naturally this increased the bandwidth between the host and device which implied that networks that were significantly large might incur a significant memory transfer cost.
+
 \subsubsection{Membrane Potential Update Kernel}
 
 The functionality of the Membrane Potential Loop ($\textsc{MembranePotential}(dt)$ in Algorithm \ref{alg:syn}) is to update each neuron in the network if the neuron has spiked.  It calls a function called \textsc{Update} in order to update the whospike array which keeps track of exactly which neurons have spiked by index. In the original, the whospike array was an int array, that when indexed contained each of the indexes of Neurons that have spiked. We have instead made this a boolean array and the "Update" function instead turns the index into a 1 if the corresponding Neuron has spiked.
@@ -224,6 +226,15 @@ Below is the table of the execution times across the restructured CPU code, GPU 
 The restructured CPU code is naturally more suited for execution on the GPU. We greatly reduced the overhead of having to allocate and deallocate the array structure per neuron, by replacing this implementation with one that simply flags the corresponding synaptic connection. Since each thread is only required to flag its corresponding thread index, we are able to utilize the Single instruction, multiple thread (SIMT) model, eliminate thread divergence within the Deactivate function, and eliminate the unnecessary work load. 
 
 While the new implementation provides considerable speed up over the original implementation, this new approach is limited on the size of the network. Since the size of our network was 1000, the GPU only required 32 MB of space, 16 MB per active and super synaptic network. If the network size was increased to 10,000, then the GPU would require 3.2 GB of space. Therefore, the larger the network, more space of global memory is required on the GPU. If space is exceeded, extra overhead will be required to copy data from host to device and back from device to host.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Future Work}
+
+The eventual goal is to run an entire trial on the GPU device. A constraint on our implementation was deterministic behavior of the neural network (e.g. a network can be recreated given the initial seed and training neurons). The inability to determine an optimal method to generating a deterministic sequence of random numbers on the device proved to be a limitation, although a non-deterministic implementation could potentially be useful as it would be able to run exclusively on the GPU.
+
+Another limitation on running the entire network on the GPU is the fact that synaptic strengths need to remain global synchronized across all threads. This makes a concurrent implementation difficult as it introduces competition between threads when updating the synapses between two neurons throughout the various phases. The natural advantage of an entire trial running on the GPU is the removal of the memory transfer overhead for each timestep.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
