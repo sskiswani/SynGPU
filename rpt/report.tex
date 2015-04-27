@@ -89,6 +89,9 @@ $$\tau_m\frac{dV_m(t)}{dt} = (E_l - V_m) - g_{exc}(t)V_m(t)+g_{inh}(t)(E_{inh}-V
 
 Where $\tau_m = 20$ms is the membrane time constant; $V_m$ is the membrane potential in millivolts, $E_l = -85$mV is the leak reversal potential; $g_{exc}(t)$ is the exictatory conductance due to all excitatory synapses; $g_{inh}(t)$ is the inhibitory conductance from all inhibitory synapses; $E_{inh} = -75$mV is the reversal potential of the inhibitory synapses. 
 
+
+Another significant runtime calculation involved calculating the synaptic decay after each trial.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{On the CPU}
@@ -101,13 +104,27 @@ With dedicated memory buffers, the dependencies between phases could be establis
 \begin{center}
 \begin{tabular}{ | c | c | c | c | }
 	%\hline
-	\multicolumn{4}{ c }{\it Improved Synaptic Decay: 10 Trials}\\
+	\multicolumn{3}{ c }{\it Original Synaptic Decay: 10 Trials}\\
 	\hline
-	{\bf Network Size} & {\bf Trial Average} & {\bf Avg. Timestep} & {\bf Total Runtime} \\
+	{\bf Network Size} & {\bf Trial Average} & {\bf Avg. Timestep}\\
 	\hline
-	200 & 1824.62 ms & 0.511 ms & 19793.9 ms\\
-	1000 & 8242.2 ms & 1.984 ms & 90524.3 ms\\
-	2000 & 17908.5 ms & 4.5725 ms & 195553 ms\\
+	200 	& 6.961 ms 		& 2.494 ms \\
+	1000 	& $34697.2$ ms 	& 966.5 ms\\
+	2000 	& $70110.2$ ms 	& 18.855 ms\\
+	\hline
+\end{tabular}
+\end{center}
+
+\begin{center}
+\begin{tabular}{ | c | c | c | c | }
+	%\hline
+	\multicolumn{3}{ c }{\it Improved Synaptic Decay: 10 Trials}\\
+	\hline
+	{\bf Network Size} & {\bf Trial Average} & {\bf Avg. Timestep}\\
+	\hline
+	200 & 1824.62 ms & 0.511 ms\\
+	1000 & 8242.2 ms & 1.984 ms\\
+	2000 & 17908.5 ms & 4.5725 ms\\
 	\hline
 \end{tabular}
 \end{center}
