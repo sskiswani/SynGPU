@@ -3,10 +3,14 @@
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{amsmath}
-\usepackage{graphicx}
 \usepackage{amssymb}
 \usepackage{relsize}
 \usepackage{MnSymbol}
+
+%%%
+\usepackage{algpseudocode}
+\usepackage[section]{algorithm}
+\usepackage{amsthm}
 
 %%%
 \usepackage[colorinlistoftodos]{todonotes}
@@ -22,17 +26,17 @@
 \date{April 24, 2015}
 
 \begin{document}
-\listoftodos % TODO: REMOVE ME
-\todo{Remove the todo list and all todos.}
 
 \maketitle
+
+\listoftodos % TODO: REMOVE ME
+\todo{Remove the todo list and all todos.}
 
 \begin{abstract}
 Neural Networks lend themselves naturally to being parallelized, although certain caveats exist. Furthermore, there exists little work on the benefits of parallelizing networks having a dynamic topology. We demonstrate a parallel implemention of the the Synfire-Growth simulation (developed by Jun and Jin \cite{synfire}) that runs on the GPU. Despite the dynamic topology of the neural network, our results show that porting the work of \cite{synfire} to the GPU provided useful runtime performance benefits.\todo{double check this, fill in some actual data as results come in. add a *tiny* bit more.}
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Introduction}
 The human brain is one of the most complicated and interesting biological systems in nature. Despite our poor understanding of the brain's complex structure, it is common to describe it as a biological computer, consisting of an dense and tangled network of neurons, which serve as pathways for electrical current. This analogy provides a useful starting point for computational models, and is often employed in the machine learning domain.
 
@@ -41,6 +45,7 @@ Neural Networks (or NN's) can be understood most simply as a complete weighted g
 
 This paper describes the simulation of neural networks with dynamic topology on the GPU using the model developed by \cite{synfire} in 2007. We describe how the implementation of \cite{synfire} was refactored to run on the GPU and take advantage of parallelization. Our work concludes with a cost-benefit analysis of running this simulation on the GPU, and how neural networks naturally lend themselves to the parallel environment.\todo{elaborate and make sure its 100\% obvious our implementation is just a refactoring of \cite{synfire}}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Background}
 Primarily, the study the neuroscience is concerned with the behavior of the brain, the way it is structured, the way it learns, how it develops, how it adapts, and changes with respect to stimuli. While understanding of the central nervous system continues to grow, there is so much that is unknown about the brain: the storage and accessing of memories, how the brain retains information, the idea of consciousness, and how sensory input is translated into smell, taste, or pain. The modeling and simulating of brain activity is vital in observing the behavior of the brain and building intuition.
 
@@ -48,7 +53,6 @@ There are generally two families of algorithms for the simulation of neural netw
 \todo{proposal material. clean up, rephrase statements, and trim the fat.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Previous Work}
 \todo{requires a clean-up and a couple of revisions to fit the tone of the paper. Include a paragraph on the synfire paper.}%
 %%%% NOTES FROM PROPOSAL (rephrase and fit into something acceptable)
@@ -63,14 +67,33 @@ The model we chose to implement on the GPU was one developed and detailed by \ci
 
 In addition to developing the simulation model, it was also implemented by \cite{synfire}. By using their implementation as our foundation, we were able to run a faithful representation of their work on the GPU which provides a convenient metric for the efficacy of our work.\todo{clean up. elaborate on implementation maybe?}
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \section{Implementation Details}
 
 {\color{red} synfire refactoring description: improvements, complications etc. short and sweet}
 
+\begin{algorithm}[H]
+\caption{Synfire Growth Trial}
+\label{alg:syn}
+\begin{algorithmic}
+\While{$t < \textsc{TRIAL\_TIME}$}
+	% Membrane Potential Layer.
+	\State $\textsc{MembranePotential}(dt)$
+	% Spike Loop
+	\For{$n \in N$ that spiked}\Comment{Spike Loop}
+		\State Check to see if spiking neuron is saturated.
+		\State Spiking neuron isn't saturated, send spikes along active connections.
+		\State Synaptic Plasticity.
+	\EndFor
+	% Inhibition
+	\For{$n \in N$ that spiked}\Comment{Inhibition Phase}
+		\State Calculate inhibition.
+	\EndFor
+	\State $t \gets t + dt$
+\EndWhile
+\State $\textsc{SynapticDecay}()$
+\end{algorithmic}
+\end{algorithm}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{On the CPU}
@@ -78,18 +101,14 @@ In addition to developing the simulation model, it was also implemented by \cite
 {\color{red} depending on time, mention how we tried to help the CPU being competitive in our analysis}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 \subsection{On the GPU}
-
-{\huge \color{red} ---MOST IMPORTANT PART HERE---}
 
 {\color{red} describe some potential + actual optimizations by name; choose 2/3 and go into explicit detail in the subsubsects.}
 
 {\color{red} reasons for choosing aforementioned optimizations goes here}
 
-\subsubsection{Optimization 1}
-
-{\color{red} describe one method of the GPU implementation, and include some of the timings. maybe compare it to CPU? dont say its the best here though}
+\subsubsection{Membrane Potential Layer}
+Due to the fact that each neuron is integrated over $dt$ individually, the mebrane potential layer update step lends itself very naturally to being parallelized. 
 
 \subsubsection{Optimization 2}
 
