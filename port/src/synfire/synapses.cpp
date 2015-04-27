@@ -280,7 +280,6 @@ int Synapses::CountSynapses( char syn_type ) {
 
     int sum = 0;
     for (int i = 0; i < _size; ++i) {
-        LOG("What's good %i", i)
         sum += cn_type[i];
     }
     return sum;

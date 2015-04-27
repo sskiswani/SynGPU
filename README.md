@@ -21,13 +21,6 @@ Use `make <rule> CXX=g++44` if you happen to be working on `*.cs.fsu.edu`.
 - [x] Fill this out.
 - [x] SynapticDecay (SD) kernel. (see [syndecay](https://github.com/sskiswani/SynGPU/tree/syndecay) branch)
 - [x] Membrane Potential Layer (MPL) kernel (see [kern_mpl](https://github.com/sskiswani/SynGPU/tree/kern_mpl) branch).
-- [ ] SynapticPlasticity (SP) kernel.
-- [ ] Spike Loop (SL) kernel.
-- [ ] Timestep (TS) kernel.
-- [ ] Add atomic operation safety.
-- [ ] Remove all traces of `./port/src/gpu/cudaTester.cu`
-- [ ] Finish the report.
-- [ ] Fix `run.py` (and/or make it useful)
 - [ ] Submit
 
 #Deliverables
@@ -69,6 +62,31 @@ The following options were ported from the original source.
 - `-x <double>` (*default: 1500 Hz*) sets spike rate of training excitation , input assumed to be in milliseconds.
 - `-y <double>` (*default: .7*) sets amplitude of training excitation 
 - `-z <double>` (*default: 8 ms*) sets the training excitation duration 
+
+##Example Timing Run
+```c++
+#include <iostream>
+
+#include "utility.h"
+#include "synfire.h"
+
+int main( int argc, char *argv[] ) {
+    SynfireParameters params(argc, argv);
+    Timer timer;
+    Synfire *syn;
+
+    int trials[3] = {200, 1000, 2000};
+    for(int i = 0; i < 3; i++) {
+        params.network_size = trials[i];
+        timer.Start();
+        syn = new Synfire(params);
+        syn->Run();
+        timer.Stop();
+        std::cout << "Size: " << params.network_size;
+        std::cout << " Time: " << US_TO_MS(timer.Duration()) << " ms." << std::endl;
+    }
+}
+```
 
 #References
 
