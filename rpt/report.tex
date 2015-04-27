@@ -128,23 +128,16 @@ This new implementation is much more suited for execution on the GPU. We greatly
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Results}
-{\huge \color{red} IMPORTANT!!}
-
 {\color{red} talk about the pros/cons of certain methods and do the major pro/con chart between methods.}
 
-{\color{red} be specific about the differences in implementation details. how optimizations can be combined or something to fill up the space}
-
-{\color{red} a conclusory sentence that sums up the report}
-
-\subsection{Optimization 2}
 Below is the table of the execution times across the restructured CPU code, GPU code, and the original source code. The restructured Synapse class, which utilized two static Boolean arrays to house the active and super synaptic connections, resulted in a speed up of 430x over the original implementation, which required the constant allocation and deallocation of each active and super synaptic array, per neuron. Naturally, this restructured implementation is well suited for execution on the GPU, resulting in a speed up 5.46x over the restructured CPU code, and  speed up of 2298.9x over the original implementation.
 
 \begin{center}
-    \begin{tabular}{ | l | l |}
+    \begin{tabular}{ | c | c |}
     \hline
-	\multicolumn{2}{ |c| }{Synaptic Decay: Execution times} \\
+	\multicolumn{2}{ |c| }{\bf Synaptic Decay: Execution times} \\
 	\hline
-    Platform & Time ($\mu s$) \\ \hline
+    {\bf Platform} & {\bf Time} ($\mu s$) \\ \hline
     GPU & 0.4126 \\ \hline
     CPU & 2.2529 \\ \hline
     Original & 969.2  \\
