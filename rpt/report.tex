@@ -70,8 +70,8 @@ In addition to developing the simulation model, it was also implemented by \cite
 	% Spike Loop
 	\For{$n \in N$ that spiked}\Comment{Spike Loop}
 		\State Check to see if spiking neuron is saturated.
-		\State Spiking neuron isn't saturated, send spikes along active connections.
-		\State Synaptic Plasticity.
+		\State If spiking neuron isn't saturated, send spikes along active connections.
+		\State Perform Spike Timing Dependent Plasticity on excitatory synapses.
 	\EndFor
 	% Inhibition
 	\For{$n \in N$ that spiked}\Comment{Inhibition Phase}
@@ -89,6 +89,7 @@ $$\tau_m\frac{dV_m(t)}{dt} = (E_l - V_m) - g_{exc}(t)V_m(t)+g_{inh}(t)(E_{inh}-V
 
 Where $\tau_m = 20$ms is the membrane time constant; $V_m$ is the membrane potential in millivolts, $E_l = -85$mV is the leak reversal potential; $g_{exc}(t)$ is the exictatory conductance due to all excitatory synapses; $g_{inh}(t)$ is the inhibitory conductance from all inhibitory synapses; $E_{inh} = -75$mV is the reversal potential of the inhibitory synapses. 
 
+The ``Spike Loop'' of Algorithm \ref{alg:syn} is the process of applying long term potentiation (LTP) to incoming synapses and long term depression (LTD) to outgoing synapses, as defined by \cite{synfire}. This involves strengthing and weakening synapses based on a their spike times within a given window, $\Delta t$. Our implementation defaults this window to $\Delta t = 200$ms.
 
 Another significant runtime calculation involved calculating the synaptic decay after each trial, which involves an iteration over every synapse in the network (which is of size $O(n^2)$) and applying an expontential decay to the strength of the synapse.
 
