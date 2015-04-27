@@ -11,8 +11,6 @@
 \usepackage[section]{algorithm}
 
 %%%
-\usepackage[colorinlistoftodos]{todonotes}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -24,13 +22,10 @@
 \date{April 24, 2015}
 
 \begin{document}
-\listoftodos % TODO: REMOVE ME
-\todo{Remove the todo list and all todos.}
-
 \maketitle
 
 \begin{abstract}
-Neural Networks lend themselves naturally to being parallelized, although certain caveats exist. Furthermore, there exists little work on the benefits of parallelizing networks having a dynamic topology. We demonstrate a parallel implemention of the the Synfire-Growth simulation (developed by Jun and Jin \cite{synfire}) that runs on the GPU. Despite the dynamic topology of the neural network, our results show that porting the work of \cite{synfire} to the GPU provided useful runtime performance benefits.\todo{double check this, fill in some actual data as results come in. add a *tiny* bit more.}
+Neural Networks lend themselves naturally to being parallelized, although certain caveats exist. Furthermore, there exists little work on the benefits of parallelizing networks having a dynamic topology. We demonstrate a parallel implemention of the the Synfire-Growth simulation (developed by Jun and Jin \cite{synfire}) that runs on the GPU. Despite the dynamic topology of the neural network, our results show that porting the work of \cite{synfire} to the GPU provided useful runtime performance benefits.
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -41,22 +36,23 @@ The human brain is one of the most complicated and interesting biological system
 Neural Networks (or NN's) can be understood most simply as a complete weighted graph, with vertices representing neurons, and weighted edges representing the strength of a neural connection. This model can be enhanced by allowing the weights to change in response to external simuli, representing a dynamic topology of connected neurons.
 
 
-This paper describes the simulation of neural networks with dynamic topology on the GPU using the model developed by \cite{synfire} in 2007. We describe how the implementation of \cite{synfire} was refactored to run on the GPU and take advantage of parallelization. Our work concludes with a cost-benefit analysis of running this simulation on the GPU, and how neural networks naturally lend themselves to the parallel environment.\todo{elaborate and make sure its 100\% obvious our implementation is just a refactoring of \cite{synfire}}
+This paper describes the simulation of neural networks with dynamic topology on the GPU using the model developed by \cite{synfire} in 2007. We describe how the implementation of \cite{synfire} was refactored to run on the GPU and take advantage of parallelization. Our work concludes with a cost-benefit analysis of running this simulation on the GPU, and how neural networks naturally lend themselves to the parallel environment.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Background}
 Primarily, the study the neuroscience is concerned with the behavior of the brain, the way it is structured, the way it learns, how it develops, how it adapts, and changes with respect to stimuli. While understanding of the central nervous system continues to grow, there is so much that is unknown about the brain: the storage and accessing of memories, how the brain retains information, the idea of consciousness, and how sensory input is translated into smell, taste, or pain. The modeling and simulating of brain activity is vital in observing the behavior of the brain and building intuition.
 
 There are generally two families of algorithms for the simulation of neural networks, described in detail by \cite{spike}. The two families are synchronous (“clock-driven”) or asynchronous (“event-driven”) algorithms. In synchronous algorithms neurons are updated only when they receive or emit a spike, whereas “clock-driven” algorithms update all neurons simultaneously at every tick of a clock. There are plenty of simulations using synchronous algorithms, because the spike times are a defined time grid. To get exact simulations of neuron spiking, asynchronous algorithms are recommended. Asynchronous algorithms have been developed for simpler models, but for very large networks, the simulation time and number of spikes becomes problematic for computation.
-\todo{proposal material. clean up, rephrase statements, and trim the fat.}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Previous Work}
-Despite the group's lack of domain knowledge regarding neural networks, the work of \cite{accel} provided the initial foundation and direction for our work. The comparisons of the Hodgkin-Huxel (HH) and Izhikevich models of neural networks provided by \cite{accel} was a significant aide in deciding which model to use for our simulation. In addition to their analysis, \cite{accel} provides evidence for parallel implementations on the GPU that achieve speedups of greater than 110 times their corresponding CPU implementations. Though we could not reproduce a speedup of their magnitude, it gave our work its initial direction. \todo{be more specific about how \cite{accel} served as a foundation for the project. as it stands it seems out of place and kinda useless. also phrasing is awkward.}
+Despite the group's lack of domain knowledge regarding neural networks, the work of \cite{accel} provided the initial foundation and direction for our work. The comparisons of the Hodgkin-Huxel (HH) and Izhikevich models of neural networks provided by \cite{accel} was a significant aide in deciding which model to use for our simulation. In addition to their analysis, \cite{accel} provides evidence for parallel implementations on the GPU that achieve speedups of greater than 110 times their corresponding CPU implementations. Though we could not reproduce a speedup of their magnitude, it gave our work its initial direction.
 
 The model we chose to implement on the GPU was one developed and detailed by \cite{synfire}, suggested by an informal advisor for this project.
 
-In addition to developing the simulation model, it was also implemented by \cite{synfire}. By using their implementation as our foundation, we were able to run a faithful representation of their work on the GPU which provides a convenient metric for the efficacy of our work.\todo{clean up. elaborate on implementation maybe?}
+In addition to developing the simulation model, it was also implemented by \cite{synfire}. By using their implementation as our foundation, we were able to run a faithful representation of their work on the GPU which provides a convenient metric for the efficacy of our work.
 
 
 
@@ -64,23 +60,13 @@ In addition to developing the simulation model, it was also implemented by \cite
 
 \section{Implementation Details}
 
-{\color{red} synfire refactoring description: improvements, complications etc. short and sweet}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{On the CPU}
 
-{\color{red} depending on time, mention how we tried to help the CPU being competitive in our analysis}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{On the GPU}
-
-{\huge \color{red} ---MOST IMPORTANT PART HERE---}
-
-{\color{red} describe some potential + actual optimizations by name; choose 2/3 and go into explicit detail in the subsubsects.}
-
-{\color{red} reasons for choosing aforementioned optimizations goes here}
 
 \subsubsection{Optimization 1}
 
@@ -109,13 +95,14 @@ In addition to developing the simulation model, it was also implemented by \cite
 
 The functionality of the Membrane Potential Loop is to update each neuron in the network if the neuron has spiked.  It calls a function called "Update" in order to update the whospike array which keeps track of exactly which neurons have spiked by index. In the original, the whospike array was an int array, that when indexed contained each of the indexes of Neurons that have spiked. We have instead made this a boolean array and the "Update" function instead turns the index into a 1 if the corresponding Neuron has spiked.
 
+By transferring the Membrane potential loop onto the GPU, we have used each thread generated by the kernel to update individual Neurons. We have also greatly reduced overhead by making our whospike array a boolean and not having to allocate and deallocate the integer array, as it was in the source code. The kerenel function still calls the \textsc{Update} function in order to update the whospike array, in this function another computationally intensive function called \textsc{neur\_dyn} is called.
 
-By transferring the Membrane potential loop onto the GPU, we have used each thread generated by the kernel to update individual Neurons. We have also greatly reduced overhead by making our whospike array a boolean and not having to allocate and deallocate the integer array, as it was in the source code. The kerenel function still calls the "Update" function in order to update the whospike array, in this function another computationally intensive function called Neur\_Dyn is called.
-
-The original implementation of Neur\_Dyn function utilized four arrays, all of size 3, to host the results of each progression of the function and eventually update the membrane potential voltages, excitation conductance, and inhibitory conductance. While the array address is stored in the local register, the contents of the arrays are stored in global memory, therefore, each call to an array required roughly 500 clock cycles to execute. Overall, this implementation accessed global memory 92 times; which in turn took 46000 clock cycles. 
+The original implementation of \textsc{neur\_dyn} function utilized four arrays, all of size 3, to host the results of each progression of the function and eventually update the membrane potential voltages, excitation conductance, and inhibitory conductance. While the array address is stored in the local register, the contents of the arrays are stored in global memory, therefore, each call to an array required roughly 500 clock cycles to execute. Overall, this implementation accessed global memory 92 times; which in turn took 46000 clock cycles. 
 
 To reduce global memory access, we utilized three local registers to temporarily hold the membrane potential and conductance's and 3 local registers, in place of the arrays, each holding an object of type double, to store the results of each progression. After each progression, the temporary voltages and conductance's are updated. By replacing the arrays with single variables, we had accessed global memory only 3 times. We also eliminated the instance of thread divergence by utilizing the additive identity of the spike voltage. While this required 8 extra floating point operations, the performance benefits of parallel execution, across all threads, far exceeds the extra overhead. 
  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsubsection{Optimization 2}
 
 \begin{algorithm}[H]
@@ -171,22 +158,10 @@ To efficiently run the Synaptic Decay model on the GPU, we decided to restructur
 
 This new implementation is much more suited for execution on the GPU. We greatly reduced the overhead of having to allocate and deallocate the array structure per neuron, by replacing this implementation with one that simply flags the corresponding synaptic connection.  Furthermore, since each thread is only required to flag its corresponding thread index, we are able to utilize the Single instruction, multiple thread (SIMT) model, eliminate thread divergence, and eliminate unnecessary work load.
 
-\subsubsection{Optimization 3}
-
-{\color{red} might be able to get away with only 2 but this serves as a reminder to shoot for the stars}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Results}
-{\huge \color{red} IMPORTANT!!}
 
-{\color{red} talk about the pros/cons of certain methods and do the major pro/con chart between methods.}
-
-{\color{red} be specific about the differences in implementation details. how optimizations can be combined or something to fill up the space}
-
-{\color{red} a conclusory sentence that sums up the report}
-
-\subsection{Optimization 2}
 Below is the table of the execution times across the restructured CPU code, GPU code, and the original source code. The restructured Synapse class, which utilized two static Boolean arrays to house the active and super synaptic connections, resulted in a speed up of 430x over the original implementation, which required the constant allocation and deallocation of each active and super synaptic array, per neuron. Naturally, this restructured implementation is well suited for execution on the GPU, resulting in a speed up 5.46x over the restructured CPU code, and  speed up of 2298.9x over the original implementation.
 
 \begin{center}
