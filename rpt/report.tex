@@ -15,9 +15,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \title{GPU Accelerated Neural Networks With Dynamic Topology}
-\author{Travis Chung\\ \emph{Project Leader}
-    \and Shashank Golla\\ \emph{Code Architecture}
-    \and Suhib Sam Kiswani\\\emph{Simulation Details}
+\author{Travis Chung
+    \and Shashank Golla
+    \and Suhib Sam Kiswani
 }
 \date{April 24, 2015}
 
@@ -133,7 +133,7 @@ With dedicated memory buffers, the dependencies between phases could be establis
 
 \subsection{On the GPU}
 
-
+Given the heavy runtime cost associated with integrating the membrane potential layer and calculating the synaptic decay of the network, they stood out as the things that should be ported to the GPU. 
 
 \subsubsection{Membrane Potential Update Kernel}
 
