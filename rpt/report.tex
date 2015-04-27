@@ -151,7 +151,7 @@ To reduce global memory access, we utilized three local registers to temporarily
 \ENDIF
 \If{$pd_type = Potentiation$}
 	\State $\textsc{Activate}(syn\_type, idx)$
-\ElSIF{pd\_type = Depression$}
+\ElSIF{$pd\_type = Depression$}
 	\State ${textsc{Deactivate}(syn\_type, idx)$
 \ENDIF
 \end{algorithmic}
