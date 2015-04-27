@@ -1,0 +1,19 @@
+GPU
+Size 200
+Avg Trial: 2182.89 Avg TrialStep: 0.7636 Avg Decay: 0.4376
+
+Size 1000
+Avg Trial: 4605.59 Avg TrialStep: 1.3382 Avg Decay: 4.2379
+
+Size 2000
+Avg Trial: 9387.83 Avg TrialStep: 3.8353 Avg Decay: 13.6043
+
+CPU
+Size 200
+Avg Trial: 1210.43 Avg TrialStep: 0.3684 Avg Decay: 2.2305
+
+Size 1000
+Avg Trial: 6229.88 Avg TrialStep: 1.8158 Avg Decay: 54.498
+
+Size 2000
+Avg Trial: 12882.5 Avg TrialStep: 4.0953 Avg Decay: 221.906
