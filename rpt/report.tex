@@ -89,7 +89,10 @@ In addition to developing the simulation model, it was also implemented by \cite
 
 \subsubsection{Optimization 1}
 
-{\color{red} describe one method of the GPU implementation, and include some of the timings. maybe compare it to CPU? dont say its the best here though}
+The original implementation of Neur\_Dyn function utilized four arrays, all of size 3, to host the results of each progression of the function and eventually update the membrane potential voltages, excitation conductance, and inhibitory conductance. While the array address is stored in the local register, the contents of the arrays are stored in global memory, therefore, each call to the array required roughly 500 clock cycles to execute. Overall, this implementation accessed global memory 92 times. 
+
+To reduce global memory access, we utilized three local registers to temporarily hold the membrane potential and conductance's and 3 local registers, in replace of the arrays, each holding an object of type double, to store the results of each progression. After each progression, the temporary voltages and conductance's are updated. By replacing the arrays with single variables, we had accessed global memory only 3 times. We also eliminated the instance of thread divergence by utilizing the additive identity of the spike voltage. While this required 8 extra floating point operations, the performance benefits of parallel execution, across all threads, far exceeds the extra overhead.
+
 
 \subsubsection{Optimization 2}
 The Synaptic Decay function required the most time to execute and produced the most overhead per function call. This model we had used required, per trial, the signaling of an inhibitory response through all active and super synaptic connections. This was executed by reducing each synaptic strength measurement with a constant synaptic decay factor. During this process, if the decayed, synaptic strength of each connection failed to exceed the corresponding active or super synaptic threshold, the connection to the post synaptic neuron would be trimmed, and no longer present in either the active or super synaptic network.
@@ -98,7 +101,8 @@ The original implementation created two, two-dimensional int arrays, composed of
 
 To efficiently run the Synaptic Decay model on the GPU, we decided to restructure the Synapse class by creating two static Boolean arrays to house the active and super synaptic connections. Each array was a complete network, of size, network\_size-by-network\_size, where network\_size is the number of neurons existing in the network. If there existed an active or super synaptic connection from one neuron to another neuron, the corresponding index in the corresponding complete network would be flagged as true. 
 
-Our implementation is much more suited for execution on the GPU. We greatly reduced the overhead of having to allocate and deallocate the array structure per neuron, by replacing this implementation with one that simply flags the corresponding synaptic connection.  Furthermore, since each thread is only required to flag its corresponding thread index, we are able to utilize the Single instruction, multiple thread (SIMT) model, eliminate thread divergence, and eliminate unnecessary work load.
+This new implementation is much more suited for execution on the GPU. We greatly reduced the overhead of having to allocate and deallocate the array structure per neuron, by replacing this implementation with one that simply flags the corresponding synaptic connection.  Furthermore, since each thread is only required to flag its corresponding thread index, we are able to utilize the Single instruction, multiple thread (SIMT) model, eliminate thread divergence, and eliminate unnecessary work load.
+
 \subsubsection{Optimization 3}
 
 {\color{red} might be able to get away with only 2 but this serves as a reminder to shoot for the stars}
@@ -114,6 +118,25 @@ Our implementation is much more suited for execution on the GPU. We greatly redu
 
 {\color{red} a conclusory sentence that sums up the report}
 
+\subsection{Optimization 2}
+Below is the table of the execution times across the restructured CPU code, GPU code, and the original source code. The restructured Synapse class, which utilized two static Boolean arrays to house the active and super synaptic connections, resulted in a speed up of 430x over the original implementation, which required the constant allocation and deallocation of each active and super synaptic array, per neuron. Naturally, this restructured implementation is well suited for execution on the GPU, resulting in a speed up 5.46x over the restructured CPU code, and  speed up of 2298.9x over the original implementation.
+
+\begin{center}
+    \begin{tabular}{ | l | l |}
+    \hline
+	\multicolumn{2}{ |c| }{Synaptic Decay: Execution times} \\
+	\hline
+    Platform & Time ($\mu s$) \\ \hline
+    GPU & 0.4126 \\ \hline
+    CPU & 2.2529 \\ \hline
+    Original & 969.2  \\
+    \hline
+    \end{tabular}
+\end{center}
+
+The restructured CPU code is naturally more suited for execution on the GPU. We greatly reduced the overhead of having to allocate and deallocate the array structure per neuron, by replacing this implementation with one that simply flags the corresponding synaptic connection. Since each thread is only required to flag its corresponding thread index, we are able to utilize the Single instruction, multiple thread (SIMT) model, eliminate thread divergence within the Deactivate function, and eliminate the unnecessary work load. 
+
+While the new implementation provides considerable speed up over the original implementation, this new approach is limited on the size of the network. Since the size of our network was 1000, the GPU only required 32 MB of space, 16 MB per active and super synaptic network. If the network size was increased to 10,000, then the GPU would require 3.2 GB of space. Therefore, the larger the network, more space of global memory is required on the GPU. If space is exceeded, extra overhead will be required to copy data from host to device and back from device to host.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
