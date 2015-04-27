@@ -86,6 +86,12 @@ In addition to developing the simulation model, it was also implemented by \cite
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{On the CPU}
+A significant part of the development time required creating a competitive implementation on the CPU which required a total rewrite of the most current Synfire Growth implementation. The most important detail of the rewrite was pulling out the details of an individual trail (Algorithm \ref{alg:syn}) and modularizing the high level steps, which would allow a individual phases to be run on a GPU kernel independently of other phases.
+
+The CPU code was not as performant as it could've been, and the rewrite resulted in an implementation that would be competitive with the GPU code, and thus provide a standard with which to measure the effect the GPU had on performance. One of the most significant of these CPU optimizations was doing away with the multiple memory accesses and pre-allocating memory buffers before running the trials, instead of allocating during a trial. Due to the fact that the original implementation will end up using the same amount of memory by the end of every trial, this provided a runtime performance boost at no cost.
+
+With dedicated memory buffers, the dependencies between phases could be established and the bandwidth between the host and device could be minimized by excluding unnecessary memory transfers.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

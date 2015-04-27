@@ -63,6 +63,31 @@ The following options were ported from the original source.
 - `-y <double>` (*default: .7*) sets amplitude of training excitation 
 - `-z <double>` (*default: 8 ms*) sets the training excitation duration 
 
+##Example Timing Run
+```c++
+#include <iostream>
+
+#include "utility.h"
+#include "synfire.h"
+
+int main( int argc, char *argv[] ) {
+    SynfireParameters params(argc, argv);
+    Timer timer;
+    Synfire *syn;
+
+    int trials[3] = {200, 1000, 2000};
+    for(int i = 0; i < 3; i++) {
+        params.network_size = trials[i];
+        timer.Start();
+        syn = new Synfire(params);
+        syn->Run();
+        timer.Stop();
+        std::cout << "Size: " << params.network_size;
+        std::cout << " Time: " << US_TO_MS(timer.Duration()) << " ms." << std::endl;
+    }
+}
+```
+
 #References
 
 Jun, Joseph K. AND Jin, Dezhe Z. [Development of Neural Circuitry for Precise Temporal Sequences through Spontaneous Activity, Axon Remodeling, and Synaptic Plasticity](http://dx.plos.org/10.1371/journal.pone.0000723) (2007)
