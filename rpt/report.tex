@@ -131,10 +131,10 @@ To reduce global memory access, we utilized three local registers to temporarily
 \caption{Synaptic Decay}
 \label{alg:decay}
 \begin{algorithmic}
-\For{$ idx < \textsc{NETWORK\_SIZE*NETWORK\_SIZE}$}
+\For{$idx < \textsc{NETWORK\_SIZE}^2$}
 	\State $\textsc{CheckThreshold}(syn\_str, idx, syn\_type, pd_type)$
-    \State $\textsc{CheckThreshold}(syn\_str, idx, syn\_type, pd_type)$
-    \State $\textsc{Reduce Synaptic Strength}$
+	\State $\textsc{CheckThreshold}(syn\_str, idx, syn\_type, pd_type)$
+	\State $\textsc{Reduce Synaptic Strength}$
 \EndFor
 \State $\textsc{SynapticDecay}()$
 \end{algorithmic}
@@ -144,16 +144,18 @@ To reduce global memory access, we utilized three local registers to temporarily
 \caption{Check Threshold}
 \label{alg:check}
 \begin{algorithmic}
-\IF{$syn\_type=Active$}
+\If{$syn\_type =$ Active}
 	\State $\textsc{Set Active threshold}$
-\ELSIF{$syn\_type = Super$}
+\ElsIf{$syn\_type = Super$}
 	\State $\textsc{Set Super threshold}$
-\ENDIF
-\If{$pd_type = Potentiation$}
+\EndIf
+
+\If{$pd_type =$ Potentiation}
 	\State $\textsc{Activate}(syn\_type, idx)$
-\ElSIF{$pd\_type = Depression$}
-	\State ${textsc{Deactivate}(syn\_type, idx)$
-\ENDIF
+\ElsIf{$pd\_type = Depression$}
+	\State $\textsc{Deactivate}(syn\_type, idx)$
+\EndIf
+
 \end{algorithmic}
 \end{algorithm}
 
@@ -161,13 +163,13 @@ To reduce global memory access, we utilized three local registers to temporarily
 \caption{Deactivate}
 \label{alg:deactivate}
 \begin{algorithmic}
-	\IF{$syn\_type = Active}$
+\If{$syn\_type =$ Active}
 	\State $\textsc{Decrement Active Synapse counter}$
-    \State $\textsc{Flag index false}$
-\ELSIF{$syn\_type == Super$}
+	\State $\textsc{Flag index false}$
+\ElsIf{$syn\_type =$ Super}
 	\State $\textsc{Decrement Super Synapse counter}$
-    \State $\textsc{Flag index false}$
-\ENDIF
+	\State $\textsc{Flag index false}$
+\EndIf
 \end{algorithmic}
 \end{algorithm}
 The Synaptic Decay function required the most time to execute and produced the most overhead per function call. This model we had used required, per trial, the signaling of an inhibitory response through all active and super synaptic connections. This was executed by reducing each synaptic strength measurement with a constant synaptic decay factor. During this process, if the decayed, synaptic strength of each connection failed to exceed the corresponding active or super synaptic threshold, the connection to the post synaptic neuron would be trimmed, and no longer present in either the active or super synaptic network.
