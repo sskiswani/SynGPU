@@ -78,53 +78,45 @@ CUDA_CALLABLE void Neuron::neur_dyn( double dt, bool no_volt ) {
     const double DECAY_INHIBITORY = NEURON_DECAY_INHIBITORY;
     const double INHIBITORY_REVERSAL = NEURON_INHIBITORY_REVERSAL;
 
-    //update membrane potential,conductances with 4th order RK
-    double c1[3], c2[3], c3[3], c4[3];
-    c1[0] = -dt * _gexc / DECAY_EXCITORY;
-    c1[1] = -dt * _ginh / DECAY_INHIBITORY;
-    if (no_volt == false) {
-        c1[2] = (dt / DECAY_MEMBRANE) *
-                ((_LEAKREV - _volts) - _gexc * _volts + _ginh * (INHIBITORY_REVERSAL - _volts));
-    }
-    else {
-        c1[2] = 0;
-    }
 
-    c2[0] = -dt * (_gexc + c1[0] / 2.0) / DECAY_EXCITORY;
-    c2[1] = -dt * (_ginh + c1[1] / 2.0) / DECAY_INHIBITORY;
-    if (no_volt == false) {
-        c2[2] = (dt / DECAY_MEMBRANE) *
-                (_LEAKREV - (_volts + (c1[2] / 2.0)) - (_gexc + c1[0] / 2.0) * (_volts + (c1[2] / 2.0)) +
-                 (_ginh + c1[1] / 2.0) * (INHIBITORY_REVERSAL - (_volts + (c1[2] / 2.0))));
-    }
-    else {
-        c2[2] = 0;
-    }
+	double temp0, temp1, temp2;
+	double tVolts = 0, tGexh = 0, tGinh = 0;
 
-    c3[0] = -dt * (_gexc + c2[0] / 2.0) / DECAY_EXCITORY;
-    c3[1] = -dt * (_ginh + c2[1] / 2.0) / DECAY_INHIBITORY;
-    if (no_volt == false) {
-        c3[2] = (dt / DECAY_MEMBRANE) *
-                (_LEAKREV - (_volts + (c2[2] / 2.0)) - (_gexc + c2[0] / 2.0) * (_volts + (c2[2] / 2.0)) +
-                 (_ginh + c2[1] / 2.0) * (INHIBITORY_REVERSAL - (_volts + (c2[2] / 2.0))));
-    }
-    else {
-        c3[2] = 0;
-    }
+	temp2 = (dt/DECAY_MEMBRANE)*((_LEAKREV-_volts)-_gexc*_volts+_ginh*(INHIBITORY_REVERSAL-_volts));
+	temp2 = temp2 - (int)no_volt * temp2;
+	temp1 =-dt*_ginh/DECAY_INHIBITORY;
+	temp0 =-dt*_gexc/DECAY_EXCITORY;
 
-    c4[0] = -dt * (_gexc + c3[0]) / DECAY_EXCITORY;
-    c4[1] = -dt * (_ginh + c3[1]) / DECAY_INHIBITORY;
-    if (no_volt == false) {
-        c4[2] = (dt / DECAY_MEMBRANE) * (_LEAKREV - (_volts + c3[2]) - (_gexc + c3[0]) * (_volts + (c3[2])) +
-                                         (_ginh + c3[1]) * (INHIBITORY_REVERSAL - (_volts + c3[2])));
-    }
-    else {
-        c4[2] = 0;
-    }
+	tVolts += temp2;
+	tGexh += temp0;
+	tGinh += temp1;
 
-    _volts += (c1[2] + 2 * c2[2] + 2 * c3[2] + c4[2]) / 6.0;
-    _gexc += (c1[0] + 2 * c2[0] + 2 * c3[0] + c4[0]) / 6.0;
-    _ginh += (c1[1] + 2 * c2[1] + 2 * c3[1] + c4[1]) / 6.0;
+	temp2 =  (dt/DECAY_MEMBRANE)*(_LEAKREV-(_volts+(temp2/2.0))-(_gexc+temp0/2.0)*(_volts+(temp2/2.0))+(_ginh+temp1/2.0)*(INHIBITORY_REVERSAL-(_volts+(temp2/2.0))));
+	temp2 = temp2 -(int)no_volt * temp2;
+	temp1 = -dt*(_ginh+temp1/2.0)/DECAY_INHIBITORY;
+	temp0 = -dt*(_gexc+temp0/2.0)/DECAY_EXCITORY;
+
+	tVolts += (2*temp2);
+	tGexh += (2*temp0);
+	tGinh += (2*temp1);
+
+	temp2 =  (dt/DECAY_MEMBRANE)*(_LEAKREV-(_volts+(temp2/2.0))-(_gexc+temp0/2.0)*(_volts+(temp2/2.0))+(_ginh+temp1/2.0)*(INHIBITORY_REVERSAL-(_volts+(temp2/2.0))));
+	temp2 = temp2 -(int)no_volt * temp2;
+	temp1 = -dt*(_ginh+temp1/2.0)/DECAY_INHIBITORY;
+	temp0 = -dt*(_gexc+temp0/2.0)/DECAY_EXCITORY;
+
+	tVolts += (2*temp2);
+	tGexh += (2*temp0);
+	tGinh += (2*temp1);
+
+	temp2 =  (dt/DECAY_MEMBRANE)*(_LEAKREV-(_volts+(temp2/2.0))-(_gexc+temp0/2.0)*(_volts+(temp2/2.0))+(_ginh+temp1/2.0)*(INHIBITORY_REVERSAL-(_volts+(temp2/2.0))));
+	temp2 = temp2 -(int)no_volt * temp2;
+	temp1 = -dt*(_ginh+temp1/2.0)/DECAY_INHIBITORY;
+	temp0 = -dt*(_gexc+temp0/2.0)/DECAY_EXCITORY;
+
+	_volts += (tVolts+temp2)/6.0;
+	_gexc += (tGexh+temp0)/6.0;
+	_ginh += (tGinh+temp1)/6.0;
 }
 
 
